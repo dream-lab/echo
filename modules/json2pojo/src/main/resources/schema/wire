@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "sourceProcessor": {"type": "string"},
+    "destinationProcessor": {"type": "string"},
+    "selectedRelationships": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"},
+      "uniqueItems": true
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "processors":[
+    {
+      "name": "GetFile",
+      "class": "org.apache.nifi.processors.standard.GetFile",
+      "uuid": "0",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Batch Size": "10"},
+        {"File Filter": "README"},
+        {"Ignore Hidden Files": "true"},
+        {"Input Directory": "/nifi-1.1.2"},
+        {"Keep Source File": "true"},
+        {"Maximum File Age": null},
+        {"Maximum File Size": null},
+        {"Minimum File Age": "0 sec"},
+        {"Minimum File Size": "0 B"},
+        {"Path Filter": null},
+        {"Polling Interval": "0 sec"},
+        {"Recurse Subdirectories": "true"}
+      ],
+      "isInput": false
+    },
+    {
+      "name": "SplitText",
+      "class": "org.apache.nifi.processors.standard.SplitText",
+      "uuid": "1",
+      "relationships": [
+        {"name": "failure", "autoTerminate": true},
+        {"name": "original", "autoTerminate": true},
+        {"name": "splits", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Header Line Count": "0"},
+        {"Header Line Marker Characters": null},
+        {"Line Split Count": "10"},
+        {"Maximum Fragment Size": null},
+        {"Remove Trailing Newlines": "true"}
+      ],
+      "isInput": false
+    },
+    {
+      "name": "UpdateAttribute1",
+      "class": "org.apache.nifi.processors.attributes.UpdateAttribute",
+      "uuid": "2",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Delete Attributes Expression": null},
+        {"id.id2": "2"}
+      ],
+      "isInput": false
+    },
+    {
+      "name": "UpdateAttribute2",
+      "class": "org.apache.nifi.processors.attributes.UpdateAttribute",
+      "uuid": "3",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Delete Attributes Expression": null},
+        {"id.id3": "3"}
+      ],
+      "isInput": false
+    },
+    {
+      "name": "UpdateAttribute3",
+      "class": "org.apache.nifi.processors.attributes.UpdateAttribute",
+      "uuid": "4",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Delete Attributes Expression": null},
+        {"id.id4": "4"}
+      ],
+      "isInput": false
+    },
+    {
+      "name": "UpdateAttribute4",
+      "class": "org.apache.nifi.processors.attributes.UpdateAttribute",
+      "uuid": "5",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Delete Attributes Expression": null},
+        {"id.id5": "5"}
+      ],
+      "isInput": false
+    },
+    {
+      "name": "UpdateAttribute5",
+      "class": "org.apache.nifi.processors.attributes.UpdateAttribute",
+      "uuid": "6",
+      "relationships": [
+        {"name": "success", "autoTerminate": true}
+      ],
+      "properties": [
+        {"Delete Attributes Expression": null},
+        {"id.id6": "6"}
+      ],
+      "isInput": false
+    }
+  ],
+  "wiring": [
+    {"sourceProcessor": "0", "destinationProcessor": "1", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "1", "destinationProcessor": "2", "selectedRelationships": ["splits"]},
+    {"sourceProcessor": "2", "destinationProcessor": "3", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "2", "destinationProcessor": "4", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "3", "destinationProcessor": "5", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "4", "destinationProcessor": "5", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "5", "destinationProcessor": "6", "selectedRelationships": ["success"]}
+  ],
+  "inputstreams": ["blah"],
+  "QOS": 1
+}

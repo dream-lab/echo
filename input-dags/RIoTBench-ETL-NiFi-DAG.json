@@ -1,0 +1,132 @@
+{
+  "processors":[
+    {
+      "name": "GetFile",
+      "class": "org.apache.nifi.processors.standard.GetFile",
+      "uuid": "0",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Batch Size": "10"},
+        {"File Filter": "TAXI_sample_data_senml.csv"},
+        {"Ignore Hidden Files": "true"},
+        {"Input Directory": "/home/ETL"},
+        {"Keep Source File": "true"},
+        {"Maximum File Age": null},
+        {"Maximum File Size": null},
+        {"Minimum File Age": "0 sec"},
+        {"Minimum File Size": "0 B"},
+        {"Path Filter": null},
+        {"Polling Interval": "0 sec"},
+        {"Recurse Subdirectories": "true"}
+      ],
+      "isInput": true,
+      "sourceUuid": "1"
+    },
+    {
+      "name": "SenMLParser",
+      "class": "in.dreamlab.processors.SenMLParser",
+      "uuid": "1",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+       
+      ],
+      "isInput": false
+    },
+    {
+      "name": "EdgentFilter_RBI",
+      "class": "in.dreamlab.processors.EdgentFilter_RBI",
+      "uuid": "2",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Bloom Filter File Path": "/home/ETL/bloomfilter_taxi_id.model"}
+       ],
+      "isInput": false
+    },
+    {
+      "name": "JoinETL",
+      "class": "in.dreamlab.processors.JoinETL",
+      "uuid": "3",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Join Schema File Path": "/home/ETL/taxi-schema-without-annotation.csv"}
+      ],
+      "isInput": false
+    },
+    {
+      "name": "AnnotateETL",
+      "class": "in.dreamlab.processors.AnnotateETL",
+      "uuid": "4",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Metadata File Path": "/home/ETL/taxi-metadata-fulldataset.txt"}
+      ],
+      "isInput": false
+    },
+    {
+      "name": "InsertAzure",
+      "class": "in.dreamlab.processors.InsertAzure",
+      "uuid": "5",
+      "relationships": [
+        {"name": "success", "autoTerminate": true}
+      ],
+      "properties": [
+        {"Azure storage Connection String": "AzureStorageConnectionString",
+         "Azure Table Name":"Taxidata"
+        }
+      ],
+      "isInput": false
+    },
+    {
+      "name": "CSVSenMLParser",
+      "class": "in.dreamlab.processors.CSVSenMLParser",
+      "uuid": "6",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Annotation Schema File Path": "/home/ETL/taxi-schema-without-annotation.csv"}
+      ],
+      "isInput": false
+    },
+    {
+      "name": "PublishMQTT",
+      "class": "in.dreamlab.processors.CSVSenMLParser",
+      "uuid": "7",
+      "relationships": [
+        {"name": "success", "autoTerminate": true},
+        {"name": "failure", "autoTerminate": true}
+      ],
+      "properties": [
+        {"Broker URI": "tcp://10.24.240.116:61613"},
+        {"Client ID": "mybroker"},
+        {"Username":"admin"},
+        {"Password":"password"},
+        {"Topic":"ETL"},
+        {"Quality of Service(QoS)":"1"},
+        {"Retain Message":"true"}
+      ],
+      "isInput": false
+    }
+  ],
+  "wiring": [
+    {"sourceProcessor": "0", "destinationProcessor": "1", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "1", "destinationProcessor": "2", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "2", "destinationProcessor": "3", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "3", "destinationProcessor": "4", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "4", "destinationProcessor": "5", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "4", "destinationProcessor": "6", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "6", "destinationProcessor": "7", "selectedRelationships": ["success"]}
+  ],
+  "inputstreams": ["blah"],
+  "QOS": 1
+}

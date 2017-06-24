@@ -1,0 +1,44 @@
+{  "processors":[
+    {
+      "name": "GetFile",
+      "class": "org.apache.nifi.processors.standard.GetFile",
+      "uuid": "0",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Batch Size": "10"},
+        {"File Filter": "README"},
+        {"Ignore Hidden Files": "true"},
+        {"Input Directory": "/nifi-1.1.2"},
+        {"Keep Source File": "true"},
+        {"Maximum File Age": null},
+        {"Maximum File Size": null},
+        {"Minimum File Age": "0 sec"},
+        {"Minimum File Size": "0 B"},
+        {"Path Filter": null},
+        {"Polling Interval": "0 sec"},
+        {"Recurse Subdirectories": "true"}
+      ],
+      "isInput": false
+    },
+    {
+      "name": "UpdateAttribute5",
+      "class": "org.apache.nifi.processors.attributes.UpdateAttribute",
+      "uuid": "1",
+      "relationships": [
+        {"name": "success", "autoTerminate": true}
+      ],
+      "properties": [
+        {"Delete Attributes Expression": null},
+        {"id.id6": "6"}
+      ],
+      "isInput": false
+    }
+  ],
+  "wiring": [
+    {"sourceProcessor": "0", "destinationProcessor": "1", "selectedRelationships": ["success"]}
+  ],
+  "inputstreams": ["blah"],
+  "QOS": 1
+}
