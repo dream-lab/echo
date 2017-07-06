@@ -66,6 +66,7 @@ public class AppManager implements Runnable{
 
 		this.devices = resourceDirectory.getDevices();
 		System.out.println("Got devices");
+		System.out.println(devices.size());
 		this.deviceMapping = sc.schedule(devices, inputDag);
 		System.out.println(deviceMapping);
 				

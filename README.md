@@ -45,3 +45,7 @@ Run the DeviceDaemon.py file as a cron job that executes every minute.
 ## Usage
 
 Submit Application to the master by sending a `POST` request to the `<ip_of_cloud_master>:8080/submitDAG` with the DAG representing the application as a request body.
+
+
+
+Please refer the paper for detailed information about the platform - https://arxiv.org/abs/1707.00889

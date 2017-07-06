@@ -167,7 +167,7 @@ public class ResourceDirectory {
 		StringBuffer response;
 		try{
 			/*TODO: get rid of this hardcoded URL*/
-			String url = "http://localhost:8080/cat?prefix-href=/dataflow/" + dataFlowUUID;
+			String url = "http://13.71.125.147:8080/cat?prefix-href=/dataflow/" + dataFlowUUID;
 		
 			URL  obj = new URL(url);
 			
@@ -207,7 +207,7 @@ public class ResourceDirectory {
 
 	private void sendPost(String urlParameters, String UUID) throws Exception {
 
-		String url = "http://localhost:8080/cat?href=/dataflow/"+UUID;
+		String url = "http://13.71.125.147:8080/cat?href=/dataflow/"+UUID;
 		URL obj = new URL(url);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
@@ -426,7 +426,7 @@ public class ResourceDirectory {
 		StringBuffer response;
 		try{
 			/*TODO: get rid of this hardcoded URL*/
-			String url = "http://localhost:8080/cat?prefix-href=/device";
+			String url = "http://13.71.125.147:8080/cat?prefix-href=/device";
 		
 			URL  obj = new URL(url);
 			
@@ -469,7 +469,7 @@ public class ResourceDirectory {
 		StringBuffer response;
 		try{
 			/*TODO: get rid of this hardcoded URL*/
-			String url = "http://localhost:8080/cat?prefix-href=/device/input_stream";
+			String url = "http://13.71.125.147:8080/cat?prefix-href=/device/input_stream";
 		
 			URL  obj = new URL(url);
 			

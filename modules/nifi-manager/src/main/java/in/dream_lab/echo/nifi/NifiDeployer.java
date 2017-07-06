@@ -269,6 +269,7 @@ public class NifiDeployer implements AppDeployer {
                 String propertiesJson = mapper.writeValueAsString(properties);
                 String relationshipsJson = mapper.writeValueAsString(processor.getRelationships());
                 String configsJson = mapper.writeValueAsString(configs);
+                System.out.println("------" + configsJson + "------");
                 client.set_processor_properties_and_relationships(processorID, propertiesJson, relationshipsJson, configsJson);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();

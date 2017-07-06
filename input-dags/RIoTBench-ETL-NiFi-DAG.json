@@ -22,7 +22,6 @@
         {"Recurse Subdirectories": "true"}
       ],
       "isInput": true,
-      "sourceUuid": "1"
     },
     {
       "name": "SenMLParser",

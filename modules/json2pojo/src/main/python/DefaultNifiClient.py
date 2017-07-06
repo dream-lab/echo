@@ -448,7 +448,7 @@ class DefaultNifiClient(NifiClient):
                     },
                     "communicationsTimeout": "30 sec",
                     "yieldDuration": "10 sec",
-                    "transportProtocol": "HTTP",
+                    "transportProtocol": "RAW",
                     "proxyHost": "",
                     "proxyPort": "",
                     "proxyUser": "",
