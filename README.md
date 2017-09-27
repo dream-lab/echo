@@ -11,41 +11,23 @@ There are multiple example dataflows that are present in the input-dags folder.
 
 ## Design
 
-The project is split into three executing items. They are
+The Framework consists of mainly two modules
 
-* Resource Directory
-* Execution Engine
-* Device Deamon
+* **ECHO Master Service** - This is the central command module that manages all the resources and the applications that make up the framework. It is the point of contact for any user wishing to deploy a new Application onto the platform, or to register a new edge device into the platform
 
-The Device Deamon is deployed on all the local machines that make up the edge execution network of the test bed. The other two components make up the central control entity that is deployed on a remote cloud device.
-
-## Deployment
-
-Build the project using `mvn install`. All the required JARs will be built in their respective target folders.
+* **ECHO Platform Service** - This is the module that runs on every individual edge device. It maintains a link with the Master Service and executes the control signals received from the master.
 
 ### Resource Directory
 
 The Resource Directory is present in the *Registry* module. The target folder will contain `HyperCatServer.war` which should be placed in the ROOT directory of a tomcat server. The Dicertory can then be accessed as `<ip_of_tomcat_server>:8080/cat`
 	
-### Cloud Master 
+### MQTT Broker
 
-The Execution Engine is present in the *Master* module. This run a server on port number 8080 which exposes REST APIs to submit, rebalance and stop DAGs.
+The platform uses MQTT messages to transmit control signals between the *Master Service* and the *Platform Service*.
 
-Run the execution engine as `java -cp <path-to-master-0.1.jar> in.dream_lab.echo.master.ExecutionEngine`
-
-This server acts as the application endpoint for the platform.
-
-<!--- Add things about how to make POST requests. -->
-
-### Device Daemon
-
-<!--- Maybe here add the details about NiFi installation as well.-->
-Run the DeviceDaemon.py file as a cron job that executes every minute. 
 
 ## Usage
 
-Submit Application to the master by sending a `POST` request to the `<ip_of_cloud_master>:8080/submitDAG` with the DAG representing the application as a request body.
-
-
+Submit Application to the master by sending a `POST` request to the `<ip_of_cloud_master>:8099/DAG` with the DAG representing the application as a request body.
 
 Please refer the paper for detailed information about the platform - https://arxiv.org/abs/1707.00889

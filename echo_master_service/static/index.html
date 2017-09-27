@@ -1,0 +1,51 @@
+<html>
+<head>
+    <style>
+        table, td {
+            border: 1px solid black;
+        }
+    </style>
+    <title>ECHO</title>
+</head>
+<body onload="onload()">
+<p>ECHO</p>
+<p>The below table shows all the deployed applications</p>
+<table style="width:100%" id="apps">
+    <tr>
+        <td>Name</td>
+        <td>Status</td>
+    </tr>
+</table>
+<p>Available DAGs</p>
+<table style="width:100%" id="dags">
+    <tr>
+        <td>Name</td>
+        <td>Action</td>
+    </tr>
+</table>
+<script>
+    function onload() {
+        updateApps();
+        updateDags();
+    }
+    function updateApps() {
+        var table = document.getElementById("apps");
+        var row = table.insertRow(1);
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+
+        cell1.innerHTML = "NEW CELL 1";
+        cell2.innerHTML = "NEW CELL 2";
+    }
+    function updateDags() {
+        var table = document.getElementById("dags");
+        var row = table.insertRow(1);
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+
+        cell1.innerHTML = "NEW CELL 1";
+        cell2.innerHTML = "NEW CELL 2";
+    }
+</script>
+</body>
+</html>

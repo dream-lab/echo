@@ -1,0 +1,10 @@
+Error: No README found at .
+ * Running on http://localhost:6419/ (Press CTRL+C to quit)
+127.0.0.1 - - [27/Sep/2017 14:56:09] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [27/Sep/2017 14:56:09] "GET /__/grip/asset/github-65f9c4da76bb0a16d23d1fdf2295e9d1c4e3f83921e8450023049f34e0115f68.css HTTP/1.1" 304 -
+127.0.0.1 - - [27/Sep/2017 14:56:09] "GET /__/grip/static/octicons/octicons.css HTTP/1.1" 304 -
+127.0.0.1 - - [27/Sep/2017 14:56:09] "GET /__/grip/asset/site-1cec6e19c02a09d6c96a57a213c77436a5533e7b570074ed409b636f3b67a57b.css HTTP/1.1" 304 -
+127.0.0.1 - - [27/Sep/2017 14:56:09] "GET /__/grip/asset/frameworks-4ba00b1aa0227e4b7a7961544c3b7938afb2720757a471735991ec4475c829e0.css HTTP/1.1" 304 -
+127.0.0.1 - - [27/Sep/2017 14:56:58] "GET /__/grip/refresh/ HTTP/1.1" 200 -
+127.0.0.1 - - [27/Sep/2017 14:56:58] "GET /__/grip/refresh/ HTTP/1.1" 200 -
+127.0.0.1 - - [27/Sep/2017 14:59:10] "GET /__/grip/refresh/ HTTP/1.1" 200 -

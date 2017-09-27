@@ -1,0 +1,10 @@
+server:
+  applicationConnectors:
+    - type: http
+      port: 8099
+
+rdClientConfig:
+  rdAddress: "13.71.125.147"
+  portNumber: 8080
+
+defaultName: "Stranger"

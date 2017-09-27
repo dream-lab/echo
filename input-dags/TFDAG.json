@@ -1,0 +1,163 @@
+{
+  "processors":[
+    {
+      "name": "GetFileBatch",
+      "class": "in.dream_lab.nifi.tf.processors.GetFileBatch",
+      "uuid": "0",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Batch Size": "10"},
+        {"Ignore Hidden Files": "true"},
+        {"Input Directory": "/root/ETHTest"},
+        {"Keep Source File": "true"},
+        {"Maximum File Age": null},
+        {"Maximum File Size": null},
+        {"Minimum File Age": "0 sec"},
+        {"Minimum File Size": "0 B"},
+        {"Path Filter": null},
+        {"Polling Interval": "0 sec"},
+        {"Recurse Subdirectories": "true"}
+      ],
+      "config": [
+	{"schedulingPeriod": "30 sec"}
+      ],
+      "isInput": true,
+      "sourceUuid": "1"
+    },
+    {
+      "name": "PutFileBatch",
+      "class": "in.dream_lab.nifi.tf.processors.PutFileBatch",
+      "uuid": "1",
+      "relationships": [
+        {"name": "success", "autoTerminate": false},
+	{"name": "failure", "autoTerminate": true}
+      ],
+      "properties": [
+	{"Directory": "/home/ubuntu/usbmem/tmp"},
+	{"Conflict Resolution Strategy": "fail"},
+	{"Create Missing Directories": "true"},
+	{"Maximum File Count": null},
+	{"Last Modified Time": null},
+	{"Permissions": null},
+	{"Owner": null},
+	{"Group": null}
+      ],
+      "isInput": true,
+      "sourceUuid": "2"
+    },
+    {
+      "name": "ExecuteProcessBatch",
+      "class": "in.dream_lab.nifi.tf.processors.ExecuteProcessBatch",
+      "uuid": "2",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Command": "bash"},
+	{"Command Arguments": "/home/ubuntu/darkflow/test1.sh;/home/ubuntu/usbmem/tmp"},
+	{"Batch Duration": null},
+	{"Redirect Error Stream": "false"},
+	{"Argument Delimiter": ";"}
+       ],
+      "isInput": true,
+      "sourceUuid": "2"
+    },
+    {
+      "name": "FilterImagesEdgent",
+      "class": "in.dream_lab.nifi.tf.processors.FilterImagesEdgent",
+      "uuid": "3",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Object Class": "person"}
+      ],
+      "isInput": true,
+      "sourceUuid": "2"
+    },
+    {
+      "name": "JoinTF",
+      "class": "in.dream_lab.nifi.tf.processors.JoinTF",
+      "uuid": "4",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Object Class": "person"}
+      ],
+      "isInput": true,
+      "sourceUuid": "2"
+    },
+    {
+      "name": "ExecuteProcessBatch",
+      "class": "in.dream_lab.nifi.tf.processors.ExecuteProcessBatch",
+      "uuid": "5",
+      "relationships": [
+        {"name": "success", "autoTerminate": false}
+      ],
+      "properties": [
+        {"Command": "bash"},
+	{"Command Arguments": "/home/aakash/darkflow/darkflow/script.sh;/home/aakash/nifi/bak"},
+	{"Batch Duration": null},
+	{"Redirect Error Stream": "false"},
+	{"Argument Delimiter": ";"}
+       ],
+      "isInput": true,
+      "sourceUuid": "3"
+    },
+    {
+      "name": "PutFileBatch",
+      "class": "in.dream_lab.nifi.tf.processors.PutFileBatch",
+      "uuid": "6",
+      "relationships": [
+        {"name": "success", "autoTerminate": true},
+	{"name": "failure", "autoTerminate": false}
+      ],
+      "properties": [
+	{"Directory": "/home/aakash/nifi/bak"},
+	{"Conflict Resolution Strategy": "fail"},
+	{"Create Missing Directories": "true"},
+	{"Maximum File Count": null},
+	{"Last Modified Time": null},
+	{"Permissions": null},
+	{"Owner": null},
+	{"Group": null}
+      ],
+      "isInput": true,
+      "sourceUuid": "3"
+    },
+    {
+      "name": "LogAttribute",
+      "class": "org.apache.nifi.processors.standard.LogAttribute",
+      "uuid": "7",
+      "relationships": [
+	{"name": "failure", "autoTerminate": true},
+	{"name": "success, "autoTerminate": true}
+      ],
+      "properties": [
+	{"Log Level": "info"},
+	{"Log Payload": "false"},
+	{"Attributes to Log": null},
+	{"Attributes to Ignore": null},
+	{"Log prefix": null}
+      ],
+      "isInput": true,
+      "sourceUuid": "1"
+    }
+  ],
+  "wiring": [
+    {"sourceProcessor": "0", "destinationProcessor": "1", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "0", "destinationProcessor": "6", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "1", "destinationProcessor": "2", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "2", "destinationProcessor": "3", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "3", "destinationProcessor": "4", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "4", "destinationProcessor": "5", "selectedRelationships": ["success"]},
+    {"sourceProcessor": "6", "destinationProcessor": "4", "selectedRelationships": ["failure"]},
+    {"sourceProcessor": "5", "destinationProcessor": "7", "selectedRelationships": ["success"]}
+  ],
+  "inputstreams": ["blah"],
+  "QOS": 1
+}
+
