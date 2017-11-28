@@ -1,8 +1,8 @@
 {
   "processors":[
     {
-      "name": "GetFile",
-      "class": "org.apache.nifi.processors.standard.GetFile",
+      "name": "ETLGetFile",
+      "class": "in.dream_lab.nifi.etl.processors.ETLGetFile",
       "uuid": "0",
       "relationships": [
         {"name": "success", "autoTerminate": false}
@@ -19,9 +19,10 @@
         {"Minimum File Size": "0 B"},
         {"Path Filter": null},
         {"Polling Interval": "0 sec"},
-        {"Recurse Subdirectories": "true"}
+        {"Recurse Subdirectories": "true"},
+        {"Experiment Log File": "/home/ETL/experiment.log"}
       ],
-      "isInput": true,
+      "isInput": false,
     },
     {
       "name": "SenMLParser",
@@ -31,7 +32,7 @@
         {"name": "success", "autoTerminate": false}
       ],
       "properties": [
-       
+        {"Experiment Log File": "/home/ETL/experiment.log"}
       ],
       "isInput": false
     },
@@ -43,7 +44,8 @@
         {"name": "success", "autoTerminate": false}
       ],
       "properties": [
-        {"Bloom Filter File Path": "/home/ETL/bloomfilter_taxi_id.model"}
+        {"Bloom Filter File Path": "/home/ETL/bloomfilter_taxi_id.model"},
+        {"Experiment Log File": "/home/ETL/experiment.log"}
        ],
       "isInput": false
     },
@@ -55,7 +57,8 @@
         {"name": "success", "autoTerminate": false}
       ],
       "properties": [
-        {"Join Schema File Path": "/home/ETL/taxi-schema-without-annotation.csv"}
+        {"Join Schema File Path": "/home/ETL/taxi-schema-without-annotation.csv"},
+        {"Experiment Log File": "/home/ETL/experiment.log"}
       ],
       "isInput": false
     },
@@ -67,7 +70,8 @@
         {"name": "success", "autoTerminate": false}
       ],
       "properties": [
-        {"Metadata File Path": "/home/ETL/taxi-metadata-fulldataset.txt"}
+        {"Metadata File Path": "/home/ETL/taxi-metadata-fulldataset.txt"},
+        {"Experiment Log File": "/home/ETL/experiment.log"}
       ],
       "isInput": false
     },
@@ -79,9 +83,9 @@
         {"name": "success", "autoTerminate": true}
       ],
       "properties": [
-        {"Azure storage Connection String": "AzureStorageConnectionString",
-         "Azure Table Name":"Taxidata"
-        }
+        {"Azure storage Connection String": "AzureStorageConnectionString"},
+        {"Azure Table Name":"Taxidata"},
+        {"Experiment Log File": "/home/ETL/experiment.log"}
       ],
       "isInput": false
     },
@@ -93,7 +97,8 @@
         {"name": "success", "autoTerminate": false}
       ],
       "properties": [
-        {"Annotation Schema File Path": "/home/ETL/taxi-schema-without-annotation.csv"}
+        {"Annotation Schema File Path": "/home/ETL/taxi-schema-without-annotation.csv"},
+        {"Experiment Log File": "/home/ETL/experiment.log"}
       ],
       "isInput": false
     },

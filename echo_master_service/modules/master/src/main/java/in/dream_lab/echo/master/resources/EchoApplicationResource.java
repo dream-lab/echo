@@ -58,13 +58,27 @@ public class EchoApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public EchoApplication stop(@QueryParam("uuid") String uuid) {
         AppManager manager = applicationMap.get(uuid);
-        boolean flag = manager.stopDAG(uuid);
+        boolean flag = manager.stopDAG();
         if (flag) {
             applicationMap.remove(uuid);
             return new EchoApplication();
         }
         else
             return new EchoApplication();
+    }
+
+    @POST
+    @Path("/rebalance/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public EchoApplication rebalance(@QueryParam("uuid") String uuid) {
+        AppManager manager = applicationMap.get(uuid);
+        boolean flag = manager.stopDAG();
+        if (flag) {
+            manager.run();
+        } else {
+
+        }
+        return new EchoApplication(uuid, 1);
     }
 
 }

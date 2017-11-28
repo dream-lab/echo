@@ -46,7 +46,7 @@ public class AppManager implements Runnable{
 	public AppManager() {
 		super();
 		resourceDirectory = new ResourceDirectory("13.71.125.147", 8080);
-		mqttBroker = "tcp://10.24.24.222:1883";
+		mqttBroker = "tcp://13.71.125.147:1883";
 		mapper = new ObjectMapper();
 		try {
 			MemoryPersistence persistence = new MemoryPersistence();
@@ -76,39 +76,41 @@ public class AppManager implements Runnable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Scheduler sc = new Scheduler();
 
-		this.devices = resourceDirectory.getDevices();
-		System.out.println("Got devices");
-		System.out.println(devices.size());
-		this.deviceMapping = sc.schedule(devices, inputDag);
-		System.out.println(deviceMapping);
-				
+
 	}
 	
 
 	@Override
 	public void run() {
-		       System.out.println("inputDag");
 
-		       NetworkVisibilityMatrix matrix =
-					   new NetworkVisibilityMatrix("./networkvisibility.csv");
+        Scheduler sc = new Scheduler();
+        this.devices = resourceDirectory.getDevices();
+        System.out.println("Got devices");
+        System.out.println(devices.size());
+        this.deviceMapping = sc.schedule(devices, inputDag);
+        System.out.println(deviceMapping);
 
-		       deployer = new NifiDeployer(mqttClient, matrix);
-		       inputDag = deployer.deployDag(deviceMapping, inputDag);
-		       System.out.println("deploy done");
-		       String inputJSONString;
-		       try {
-				inputJSONString = mapper.writeValueAsString(inputDag);
-				inputJSONString = inputJSONString.replaceAll("\"", "\\\\\"");
-				System.out.println(inputJSONString);
-				System.out.println("------------------------------");
-				resourceDirectory.addDataFlow(deviceMapping, inputJSONString, uuid);
-				System.out.println("Should be added?");
-			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+        System.out.println("inputDag");
+
+        NetworkVisibilityMatrix matrix =
+               new NetworkVisibilityMatrix("./networkvisibility.csv");
+
+        deployer = new NifiDeployer(mqttClient, matrix);
+        inputDag = deployer.deployDag(deviceMapping, inputDag);
+        System.out.println("deploy done");
+        String inputJSONString;
+        try {
+            inputJSONString = mapper.writeValueAsString(inputDag);
+            inputJSONString = inputJSONString.replaceAll("\"", "\\\\\"");
+            System.out.println(inputJSONString);
+            System.out.println("------------------------------");
+            resourceDirectory.addDataFlow(deviceMapping, inputJSONString, uuid);
+            System.out.println("Should be added?");
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 	}
 
 	public static void main(String args[]) {
@@ -163,9 +165,8 @@ public class AppManager implements Runnable{
 		return dev;
 	}
 
-	public boolean stopDAG(String dataFlowUUID) {
+	public boolean stopDAG() {
 		
-		String jsonString = resourceDirectory.getOriginalJSON(dataFlowUUID);
 		ObjectMapper mapper = new ObjectMapper();
         mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
         deployer.stopDag();
