@@ -5,7 +5,7 @@ import json
 import time
 import uuid
 
-mqttHost = '10.24.24.222'
+mqttHost = '13.71.125.147'
 kafkabroker = '13.71.125.147'
 
 def on_connect(client, userdata, flags, rc):
