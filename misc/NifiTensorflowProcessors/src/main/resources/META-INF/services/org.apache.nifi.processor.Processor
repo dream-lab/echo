@@ -1,0 +1,10 @@
+in.dream_lab.nifi.tf.processors.GetFileBatch
+in.dream_lab.nifi.tf.processors.PutFileBatch
+in.dream_lab.nifi.tf.processors.GetSmbFiles
+in.dream_lab.nifi.tf.processors.PutSmbFiles
+in.dream_lab.nifi.tf.processors.ExecuteProcessBatch
+in.dream_lab.nifi.tf.processors.FilterImagesEdgent
+in.dream_lab.nifi.tf.processors.JoinTF
+in.dream_lab.nifi.tf.processors.PutToSQL
+in.dream_lab.nifi.tf.processors.JoinFromSQL
+in.dream_lab.nifi.tf.processors.JoinFiles
