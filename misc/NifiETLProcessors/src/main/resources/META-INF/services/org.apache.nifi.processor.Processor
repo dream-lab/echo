@@ -1,0 +1,7 @@
+in.dream_lab.nifi.etl.processors.JoinETL
+in.dream_lab.nifi.etl.processors.SenMLParser
+in.dream_lab.nifi.etl.processors.AnnotateETL
+in.dream_lab.nifi.etl.processors.CSVSenMLParser
+in.dream_lab.nifi.etl.processors.InsertAzure
+in.dream_lab.nifi.etl.processors.ETLGetFile
+in.dream_lab.nifi.etl.processors.EdgentFilter_RBI
