@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>in.dream_lab.echo</groupId>
-		<artifactId>echo-root</artifactId>
+		<artifactId>echo_master_service</artifactId>
 		<version>0.1</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
