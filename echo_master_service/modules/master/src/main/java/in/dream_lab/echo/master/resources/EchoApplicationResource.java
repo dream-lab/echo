@@ -42,6 +42,7 @@ public class EchoApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public EchoApplication submit(@Valid String input) {
+        long startTime = System.currentTimeMillis();
         String applicationId = UUID.randomUUID().toString();
 
         EchoApplication app = new EchoApplication(applicationId, 1);
@@ -50,6 +51,8 @@ public class EchoApplicationResource {
         applicationMap.put(applicationId, manager);
 
         manager.run();
+        long endTime = System.currentTimeMillis();
+        System.out.println("************* deploy took "+ (endTime - startTime) + "ms.");
         return app;
     }
 
@@ -57,8 +60,11 @@ public class EchoApplicationResource {
     @Path("/stop/")
     @Produces(MediaType.APPLICATION_JSON)
     public EchoApplication stop(@QueryParam("uuid") String uuid) {
+        long startTime = System.currentTimeMillis();
         AppManager manager = applicationMap.get(uuid);
         boolean flag = manager.stopDAG();
+        long endTime = System.currentTimeMillis();
+        System.out.println("************* stopping took "+ (endTime - startTime) + "ms.");
         if (flag) {
             applicationMap.remove(uuid);
             return new EchoApplication();
