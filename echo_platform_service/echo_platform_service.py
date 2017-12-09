@@ -1,16 +1,27 @@
+#!/usr/bin/python
+
 import mqttclient
 import resource_updater
+import sys
+import atexit
 
-device_uuid = '17'
-registry_url = '13.71.125.147'
+
+# TODO Here goes the logic to handle the assasination of the updater thread
+def exit_function():
+    None
+
+
+device_uuid = sys.argv[1]
+registry_url = sys.argv[2]
 registry_port = '8080'
-mqtt_client = "13.71.125.147"
-ip_address = "10.24.24.222"
+mqtt_ip = sys.argv[3]
+kafka_ip = sys.argv[4]
+update_frequency = int(sys.argv[5])
+ip_address = sys.argv[6]
 
-
-updater = resource_updater.resource_updater(registry_url, registry_port, device_uuid)
+updater = resource_updater.resource_updater(registry_url, registry_port, device_uuid, update_frequency)
 updater.register_device(ip_address)
-client = mqttclient.get_client("13.71.125.147", device_uuid)
+client = mqttclient.get_client(mqtt_ip, device_uuid)
 # Self registering could code possibly go here.
 # In fact NiFi startup could also go here.
 # This should be run at startup inside the container.

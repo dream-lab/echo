@@ -312,6 +312,9 @@ def get_client(broker, topic):
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
+    global mqttHost
+    mqttHost = broker
+
 
     client.connect(broker, 1883, 60)
 

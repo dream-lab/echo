@@ -16,32 +16,42 @@ class resource_updater:
     registry_url = ""
     registry_port = None
     device_uuid = 0
+    update_frequency = 60
 
-    def __init__(self, registry_url, registry_port, device_uuid):
+    def __init__(self, registry_url, registry_port, device_uuid, update_frequency):
         self.registry_port = registry_port
         self.registry_url = registry_url
         self.device_uuid = device_uuid
+        self.update_frequency = update_frequency
 
-    def create_payload(self):
-        data = dict()
-        data['item-metadata'] = [
-            {"rel": "urx:X-hypercat:rels:hasDescription:en"},
-            {"rel": "CPUUtil"}
+    def get_cpu_payload(self, id):
+        cpu_data = dict()
+        cpu_data['item-metadata'] = [
+            {
+                "val": "CPU Meta Data",
+                "rel": "urn:X-hypercat:rels:hasDescription:en"
+            },{
+                "val": str(20),
+                "rel": "CPUUtil"
+            }
         ]
-        return data
-
-    def get_mem_payload(self, id):
-        cpu_data = self.create_payload()
-        cpu_data['item-metadata'][0]['val'] = 'CPU Meta Data'
-        cpu_data['item-metadata'][1]['val'] = str(20)
         cpu_data['href'] = '/device/cpu/' + id
         return json.dumps(cpu_data)
 
-    def get_cpu_payload(self, id):
-        mem_data = self.create_payload()
-        mem_data['item-metadata'][0]['val'] = 'Memory Meta Data'
-        mem_data['item-metadata'][1]['val'] = str(20)
+    def get_mem_payload(self, id):
+
+        mem_data = dict()
         mem_data['href'] = '/device/mem/' + id
+
+        mem_data['item-metadata'] = [
+            {
+                "val": "Memory Meta Data",
+                "rel": "urn:X-hypercat:rels:hasDescription:en"
+            },{
+                "val": str(20),
+                "rel": "MemUtil"
+            }
+        ]
         return json.dumps(mem_data)
 
     def update_registry(self, url, id, payload):
@@ -62,7 +72,7 @@ class resource_updater:
             self.update_registry(cpu_url, self.device_uuid, self.get_cpu_payload(self.device_uuid))
             print "should be updated right?"
             #do the update
-            time.sleep(60)
+            time.sleep(self.update_frequency)
 
     def start_updater(self):
         thread = threading.Thread(target=self.update_loop_trigger)
@@ -90,10 +100,10 @@ class resource_updater:
         ]
         meta_data['href'] = '/device/meta/' + self.device_uuid
         ip_data = dict()
-        ip_data['items-metadata'] = [
+        ip_data['item-metadata'] = [
             {
                 "val": "IP",
-                "rel": "urn:X-hypercat:rels:hasDescriptor:en"
+                "rel": "urn:X-hypercat:rels:hasDescription:en"
             },{
                 "val": address,
                 "rel": "IP"
