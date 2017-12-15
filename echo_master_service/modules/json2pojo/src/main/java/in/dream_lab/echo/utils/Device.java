@@ -1,5 +1,7 @@
 package in.dream_lab.echo.utils;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -157,9 +159,21 @@ public class Device implements Serializable{
         return factory.create(this.deviceIP, this.port);
     }
 
-    public boolean equals(Device device) {
-        if (this.deviceIP == device.deviceIP &&
-                this.port == this.port)
+    @Override
+	public int hashCode() {
+		return new HashCodeBuilder().append(this.deviceUUID).toHashCode();
+	}
+
+	@Override
+    public boolean equals(Object other) {
+		if (other == this) {
+			return true;
+		}
+		if ((other instanceof Device) == false) {
+			return false;
+		}
+		Device rhs = ((Device) other);
+        if (this.deviceUUID.equals(rhs.deviceUUID))
             return true;
         else
             return false;

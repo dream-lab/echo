@@ -1,5 +1,7 @@
 package in.dream_lab.echo.utils;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+
 /**
  * Created by pushkar on 9/15/17.
  */
@@ -27,5 +29,17 @@ public class NifiKafkaPort {
 
     public String getTopic() { return this.topic; }
     public void setTopic(String topic) { this.topic = topic; }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if ((other instanceof NifiKafkaPort) == false) {
+            return false;
+        }
+        NifiKafkaPort rhs = ((NifiKafkaPort) other);
+        return new EqualsBuilder().append(id, rhs.id).isEquals();
+    }
 
 }

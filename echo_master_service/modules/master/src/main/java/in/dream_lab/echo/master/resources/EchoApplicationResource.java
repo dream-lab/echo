@@ -78,12 +78,13 @@ public class EchoApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public EchoApplication rebalance(@QueryParam("uuid") String uuid) {
         AppManager manager = applicationMap.get(uuid);
-        boolean flag = manager.stopDAG();
-        if (flag) {
-            manager.run();
-        } else {
+        manager.rebalanceDAG();
+        //boolean flag = manager.stopDAG();
+        //if (flag) {
+            //manager.rebalanceDAG();
+        //} else {
 
-        }
+        //}
         return new EchoApplication(uuid, 1);
     }
 

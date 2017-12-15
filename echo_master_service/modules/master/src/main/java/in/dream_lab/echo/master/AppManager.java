@@ -46,7 +46,7 @@ public class AppManager implements Runnable{
 	public AppManager() {
 		super();
 		resourceDirectory = new ResourceDirectory("13.71.125.147", 8080);
-		mqttBroker = "tcp://13.71.125.147:1883";
+		mqttBroker = "tcp://10.24.24.222:1883";
 		mapper = new ObjectMapper();
 		try {
 			MemoryPersistence persistence = new MemoryPersistence();
@@ -113,56 +113,29 @@ public class AppManager implements Runnable{
         }
 	}
 
-	public static void main(String args[]) {
-
-		AppManager manager = new AppManager();
-	    try {
-	        BufferedReader reader = new BufferedReader(
-	        		new FileReader("./input-dags/trivial-dag-1.json"));
-			StringBuilder builder = new StringBuilder();
-			String line;
-			while ((line = reader.readLine()) != null) {
-				builder.append(line);
-			}
-			String json = builder.toString();
-			ObjectMapper mapper = new ObjectMapper();
-			manager.inputDag = mapper.readValue(json, DataflowInput.class);
-		} catch (FileNotFoundException e) {
-	    	e.printStackTrace();
-		} catch (IOException e) {
-	    	e.printStackTrace();
-		}
-		Device d1 = new Device(); d1.setDeviceUUID("1");d1.setDeviceIP("10.24.24.101");
-		Device d2 = new Device(); d2.setDeviceUUID("2");d2.setDeviceIP("10.24.24.102");
-		Device d3 = new Device(); d3.setDeviceUUID("3");d3.setDeviceIP("10.24.24.103");
-		manager.devices = new ArrayList<>();
-		manager.devices.add(d1);
-		manager.devices.add(d2);
-		manager.devices.add(d3);
-
-	    manager.deviceMapping = new Scheduler().schedule(manager.devices, manager.inputDag);
-
-	    //manager.run();
-
-		AppDeployer deployer = new NifiDeployer(manager.mqttClient);
-		deployer.deployDag(manager.deviceMapping, manager.inputDag);
-		System.out.println("Please tell me this is running");
-		Scheduler sc = new Scheduler();
-
-		Map<String, Device> oldMapping = new HashMap<>();
-		for (Map.Entry<Processor, Device> entry: manager.deviceMapping.entrySet()) {
-			oldMapping.put(entry.getKey().getUuid(), entry.getValue());
-		}
-		//deployer.rebalanceDag(sc.schedule(manager.devices, manager.inputDag), manager.inputDag, oldMapping);
-		//this.devices
-		//this.deviceMapping
-
-	}
-
 	private static Device makeDevice(String IP) {
 		Device dev = new Device();
 		dev.setDeviceIP(IP);
 		return dev;
+	}
+
+	public boolean rebalanceDAG() {
+	    Scheduler sc = new Scheduler();
+		this.devices = resourceDirectory.getDevices();
+		System.out.println("Got devices");
+		System.out.println(devices.size());
+		this.deviceMapping = sc.schedule(devices, inputDag);
+		System.out.println(deviceMapping);
+
+		NetworkVisibilityMatrix matrix =
+				new NetworkVisibilityMatrix("./networkvisibility.csv");
+
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+		deployer.rebalanceDag(deviceMapping, inputDag);
+		System.out.println("redeploy done");
+		return true;
 	}
 
 	public boolean stopDAG() {

@@ -442,7 +442,7 @@ public class ResourceDirectory {
 				deviceToPopulate.setDeviceUUID((String)hashmap.get("val"));
 				break;
 			case "Total CPU Available":
-				deviceToPopulate.setCpuAvail(Float.parseFloat((String)hashmap.get("val")));		
+				deviceToPopulate.setCpuAvail(Float.parseFloat((String)hashmap.get("val")));
 				break;
 			case "Total Memory Available":
 				deviceToPopulate.setMemAvail(Float.parseFloat((String)hashmap.get("val")));

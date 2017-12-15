@@ -1,5 +1,7 @@
 package in.dream_lab.echo.utils;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+
 /**
  * Created by pushkar on 1/9/17.
  */
@@ -37,4 +39,16 @@ public class NifiRPG {
 
     public int getProcessorId() {return this.processorId;}
     public void setProcessorId(int processorId) {this.processorId = processorId;}
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if ((other instanceof NifiRPG) == false) {
+            return false;
+        }
+        NifiRPG rhs = ((NifiRPG) other);
+        return new EqualsBuilder().append(id, rhs.id).isEquals();
+    }
 }

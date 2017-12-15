@@ -21,5 +21,6 @@ public interface AppDeployer {
     //public boolean deployDag(Map<Processor, Device> placementMap, List<Wiring> wiring);
     public boolean stopDag();
     public DataflowInput deployDag(Map<Processor, Device> placementMap, DataflowInput input);
+    public boolean rebalanceDag(Map<Processor, Device> placementMap, DataflowInput input);
 
 }
