@@ -21,7 +21,7 @@ ip_address = sys.argv[6]
 
 updater = resource_updater.resource_updater(registry_url, registry_port, device_uuid, update_frequency)
 updater.register_device(ip_address)
-client = mqttclient.get_client(mqtt_ip, device_uuid)
+client = mqttclient.get_client(mqtt_ip, device_uuid, kafka_ip)
 # Self registering could code possibly go here.
 # In fact NiFi startup could also go here.
 # This should be run at startup inside the container.

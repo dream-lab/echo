@@ -22,10 +22,10 @@ local_ip = s.getsockname()[0]
 s.close()
 
 # change the IP address in nifi.properites
-with open('/nifi-1.1.2/conf/nifi.properties', 'r') as in_file:
+with open('/nifi-1.2.0/conf/nifi.properties', 'r') as in_file:
     text = in_file.read()
 
-with open('/nifi-1.1.2/conf/nifi.properties', 'w') as out_file:
+with open('/nifi-1.2.0/conf/nifi.properties', 'w') as out_file:
     out_file.write(text.replace('REMOTE_HOST_IP', local_ip))
 print "Changed nifi.properties file. Added local IP."
 
@@ -44,4 +44,3 @@ while True:
 print "Starting the platform service"
 subprocess.call(['/echo_platform_service/echo_platform_service.py', device_uuid, registry_url, mqtt_client, kafka_ip,
                  resource_update_frequency, local_ip])
-

@@ -308,12 +308,14 @@ def on_message(client, userdata, msg):
     #print(msg.topic + " " + str(msg.payload))
 
 
-def get_client(broker, topic):
+def get_client(broker, topic, kafka_ip):
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
     global mqttHost
     mqttHost = broker
+    global kafkabroker
+    kafkabroker = kafka_ip + ":9092"
 
 
     client.connect(broker, 1883, 60)
