@@ -1,4 +1,5 @@
 *.iml
+*.pyc
 *py.class
 **/target
 **/.idea

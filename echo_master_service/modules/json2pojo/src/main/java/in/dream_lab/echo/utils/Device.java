@@ -131,7 +131,7 @@ public class Device implements Serializable{
 			containersInfo = new HashMap<String,Container>();
 		containersInfo.put(containerUUID, container);
 	}
-	
+
 	public void removeContainer(String containerUUID){
 		containersInfo.remove(containerUUID);
 	}
