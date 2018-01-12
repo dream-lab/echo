@@ -2,7 +2,7 @@
 
 ## Introduction
 
-ECHO (**O**rchestration platform for **H**ybrid dataflows across **C**loud and **E**dge) is a platform that operates across diverse distributed resources to enable execution of complex analytical dataflows. It can operate on diverse data models - streams, micro-batches and files, and interface with native runtime engines like TensorFlow and Sorm to execute them. It manages the applcation's lifecycle, and can schedule the dataflow on Edge, Fog and Cloud resources while enabling dynamic task migration between the resources. 
+ECHO (**O**rchestration platform for **H**ybrid dataflows across **C**loud and **E**dge) is a platform that operates across diverse distributed resources to enable execution of complex analytical dataflows. It can operate on diverse data models - streams, micro-batches and files, and interface with native runtime engines like TensorFlow and Storm to execute them. It manages the applcation's lifecycle, and can schedule the dataflow on Edge, Fog and Cloud resources while enabling dynamic task migration between the resources. 
 
 ## Dataflows
 
