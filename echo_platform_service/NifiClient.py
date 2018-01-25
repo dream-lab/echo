@@ -10,6 +10,22 @@ import importlib
 
 class NifiClient():
 
+    class Error(Exception):
+        pass
+
+    class RetryError(Error):
+        def __init__(self, expression, message):
+            self.expression = expression
+            self.message = message
+
+    class FatalError(Error):
+        def __init__(self, expression, code, message):
+            self.expression = expression
+            self.code = code
+            self.message = message
+
+    # TODO add one more Error for infrastructure issues that might cause failures.
+
     address = ''
     port = ''
 
@@ -31,7 +47,10 @@ class NifiClient():
 
         if response.status == 200:
             return json.loads(response.read().decode('utf-8'))
-
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def get_process_group_id(self,):
         return self.get_process_group()['processGroupFlow']['breadcrumb']['breadcrumb']['id']
@@ -53,6 +72,10 @@ class NifiClient():
                 processor_ids.append(i['id'])
 
             return processor_ids
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def get_all_connection_id(self, debug = False):
         conn = self.connect_to_nifi()
@@ -70,6 +93,10 @@ class NifiClient():
                 connection_ids.append(i['id'])
 
             return connection_ids
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def get_connection(self, connection_id,):
         conn = self.connect_to_nifi()
@@ -81,6 +108,10 @@ class NifiClient():
         if response.status == 200:
             payload = json.loads(response.read().decode("utf-8"))
             return payload
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def get_processor(self, processor_id, debug = False):
         conn = self.connect_to_nifi()
@@ -93,8 +124,10 @@ class NifiClient():
         if response.status == 200:
             payload = json.loads(response.read().decode("utf-8"))
             return payload
-        print(response.status)
-        print(response.read())
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def get_connections(self):
         connections = self.get_all_connection_id()
@@ -135,10 +168,10 @@ class NifiClient():
 
         if response.status == 200:
             return True
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
         else:
-            print(response.status)
-            print(response.read())
-            return False
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def start_processor(self, processor_id):
         endpoint = '/nifi-api/processors/'+processor_id
@@ -151,10 +184,10 @@ class NifiClient():
 
         if response.status == 200:
             return True
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
         else:
-            print(response.status)
-            print(response.read())
-            return False
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def is_started(self, processor_id):
         return self.get_processor(processor_id)['component']['state'] == 'RUNNING'
@@ -179,6 +212,10 @@ class NifiClient():
         if response.status == 200:
             print(response.status)
             return True
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def get_connections_for_processor(self, processor_id, debug = False):
         connections = self.get_all_connection_id()
@@ -271,11 +308,11 @@ class NifiClient():
                     print("Hmm")
                 return False
             return True
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
-        if debug:
-            print(response.status)
-            print(response.read().decode("utf-8"))
-        return False
 
     def get_connection(self, connection_id, debug = False):
         endpoint = '/nifi-api/connections/' + connection_id
@@ -286,6 +323,10 @@ class NifiClient():
         if response.status == 200:
             payload = json.loads(response.read().decode('utf-8'))
             return payload
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def get_connection_version(self, connection_id, debug = False):
         version = self.get_connection(connection_id)['revision']['version']
@@ -333,12 +374,13 @@ class NifiClient():
                                        "version": 0}}
                      ), {"Content-Type": "application/json"})
         response = conn.getresponse()
-        if response.status == 201:
+        if response.status == 200 or response.status == 201:
             #print(response.read().decode('utf-8'))
             return json.loads(response.read().decode('utf-8'))['id']
-        print(response.status)
-        print(response.read().decode('utf-8'))
-        return None
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def create_new_output_port(self, name):
         process_group_id = self.get_process_group_id()
@@ -353,9 +395,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 201:
             return json.loads(response.read().decode('utf-8'))['id']
-        print(response.status)
-        print(response.read().decode('utf-8'))
-        return None
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def delete_input_port(self, id):
         conn = self.connect_to_nifi()
@@ -365,9 +408,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200:
             return True
-        print(response.status)
-        print(response.read().decode('utf-8'))
-        return False
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def delete_output_port(self, id):
         conn = self.connect_to_nifi()
@@ -377,9 +421,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200:
             return True
-        print(response.status)
-        print(response.read().decode('utf-8'))
-        return False
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def create_connection(self, from_id, to_id, relationship_name):
         # check what kind of objects the IDs are.
@@ -458,10 +503,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200 or response.status == 201:
             return json.loads(response.read().decode('utf-8'))['id']
-        print('was it me?')
-        print(response.status)
-        print(response.read())
-        return False
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def start_input_port(self, port_id, debug = False):
         endpoint = '/nifi-api/input-ports/' + port_id
@@ -476,7 +521,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200:
             return True
-        return False
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def create_remote_process_group(self, target_uri):
         pg_id = self.get_process_group_id()
@@ -507,8 +555,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 201:
             return json.loads(response.read().decode('utf-8'))['id']
-        print(response.status)
-        print(response.read())
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def delete_remote_process_group(self, id):
         conn = self.connect_to_nifi()
@@ -518,7 +568,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200:
             return True
-        return False
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def get_remote_process_group(self, id):
         conn = self.connect_to_nifi()
@@ -526,6 +579,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200:
             return json.loads(response.read().decode('utf-8'))
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def rpg_available_ports(self, rpgid, input = True):
         ports = []
@@ -606,9 +663,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200 or response.status == 201:
             return True
-        print(response.status)
-        print(response.read())
-        return False
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def enable_rpg_transmission(self, rpg_id):
         put_body = json.dumps({
@@ -625,9 +683,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200:
             return True
-        print(response.status)
-        print(response.read())
-        return False
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def disable_rpg_transmission(self, rpg_id):
         put_body = json.dumps({
@@ -644,9 +703,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200:
             return True
-        print(response.status)
-        print(response.read())
-        return False
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def get_output_port(self, port_id):
         return self.get_input_port(port_id, False)
@@ -668,8 +728,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200:
             return json.loads(response.read().decode('utf-8'))
-        print(response.status)
-        print(response.read())
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def enable_input_port(self, port_id, input_port = True, disable = False):
         if input_port:
@@ -691,9 +753,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200:
             return True
-        print(response.status)
-        print(response.read())
-        return False
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def disable_input_port(self, port_id):
         return self.enable_input_port(port_id, True, True)
@@ -718,8 +781,10 @@ class NifiClient():
         response = conn.getresponse()
         if response.status == 200 or response.status == 201:
             return json.loads(response.read().decode('utf-8'))['id']
-        print(response.status)
-        print(response.read())
+        elif response.status == 409:
+            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+        else:
+            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
     def set_processor_properties_and_relationships(self, proc_id, properties, relationships, config):
         component_json = {}
