@@ -21,6 +21,7 @@ def create_processor(params):
     class_ = params['class']
     id = None
 
+    retry = 0
     while retry < 3:
         try:
             id = client.create_processor(class_, name)
@@ -38,6 +39,8 @@ def create_processor(params):
     if retry >=3:
         logging.error('create_output_port: %s', 'NiFi asked to retry too many times')
         raise RuntimeError
+
+    retry = 0
     while retry < 3:
         try:
             client.set_processor_properties_and_relationships(id, properties, relationships, configs)
