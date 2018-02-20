@@ -22,15 +22,16 @@ local_ip = s.getsockname()[0]
 s.close()
 
 # change the IP address in nifi.properites
-with open('/nifi-1.2.0/conf/nifi.properties', 'r') as in_file:
+with open('/app/nifi-1.2.0/conf/nifi.properties', 'r') as in_file:
     text = in_file.read()
 
-with open('/nifi-1.2.0/conf/nifi.properties', 'w') as out_file:
-    out_file.write(text.replace('REMOTE_HOST_IP', local_ip))
+with open('/app/nifi-1.2.0/conf/nifi.properties', 'w') as out_file:
+    out_file.write(text.replace('nifi.remote.input.host=', 'nifi.remote.input.host='+local_ip))
+    out_file.write(text.replace('nifi.remote.input.socket.port=', 'nifi.remote.input.socket.port=5000'))
 print "Changed nifi.properties file. Added local IP."
 
 
-nificommand = subprocess.Popen(['/nifi-1.1.2/bin/nifi.sh', 'start'])
+nificommand = subprocess.Popen(['/app/nifi-1.2.0/bin/nifi.sh', 'start'])
 print "Starting NiFi."
 
 while True:
@@ -42,5 +43,5 @@ while True:
         time.sleep(4)
 
 print "Starting the platform service"
-subprocess.call(['/echo_platform_service/echo_platform_service.py', device_uuid, registry_url, mqtt_client, kafka_ip,
+subprocess.call(['/app/echo_platform_service/echo_platform_service.py', device_uuid, registry_url, mqtt_client, kafka_ip,
                  resource_update_frequency, local_ip])
