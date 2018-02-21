@@ -27,8 +27,12 @@ with open('/app/nifi-1.2.0/conf/nifi.properties', 'r') as in_file:
 
 with open('/app/nifi-1.2.0/conf/nifi.properties', 'w') as out_file:
     out_file.write(text.replace('nifi.remote.input.host=', 'nifi.remote.input.host='+local_ip))
-    out_file.write(text.replace('nifi.remote.input.socket.port=', 'nifi.remote.input.socket.port=5000'))
 print "Changed nifi.properties file. Added local IP."
+
+
+with open('/app/nifi-1.2.0/conf/nifi.properties', 'w') as out_file:
+    out_file.write(text.replace('nifi.remote.input.socket.port=', 'nifi.remote.input.socket.port=5000'))
+print "Changed nifi.properties file. Added HTTP Raw port."
 
 
 nificommand = subprocess.Popen(['/app/nifi-1.2.0/bin/nifi.sh', 'start'])
