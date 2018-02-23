@@ -2,6 +2,8 @@ import threading
 import time
 import httplib
 import json
+import os
+import datetime
 
 # TODO put this in a properties file
 mem_url = "/cat?href=/device/mem/"
@@ -17,12 +19,21 @@ class resource_updater:
     registry_port = None
     device_uuid = 0
     update_frequency = 60
+    usage_file = '/app/resource_usage.log'
 
-    def __init__(self, registry_url, registry_port, device_uuid, update_frequency):
+    def __init__(self, registry_url, registry_port, device_uuid, update_frequency, usage_file):
         self.registry_port = registry_port
         self.registry_url = registry_url
         self.device_uuid = device_uuid
         self.update_frequency = update_frequency
+        self.usage_file = usage_file
+
+    def get_cpu_usage(self):
+        return str(round(float(os.popen('''grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage }' ''').readline()),2))
+
+    def get_mem_usage(self):
+        tot_m, used_m, free_m = map(int, os.popen('free -t -m').readlines()[-1].split()[1:])
+        return str(used_m / tot_m * 100)
 
     def get_cpu_payload(self, id):
         cpu_data = dict()
@@ -31,7 +42,7 @@ class resource_updater:
                 "val": "CPU Meta Data",
                 "rel": "urn:X-hypercat:rels:hasDescription:en"
             },{
-                "val": str(20),
+                "val": self.get_cpu_usage(),
                 "rel": "CPUUtil"
             }
         ]
@@ -48,7 +59,7 @@ class resource_updater:
                 "val": "Memory Meta Data",
                 "rel": "urn:X-hypercat:rels:hasDescription:en"
             },{
-                "val": str(20),
+                "val": self.get_mem_usage(),
                 "rel": "MemUtil"
             }
         ]
@@ -72,7 +83,12 @@ class resource_updater:
             self.update_registry(cpu_url, self.device_uuid, self.get_cpu_payload(self.device_uuid))
             print "should be updated right?"
             #do the update
-            time.sleep(self.update_frequency)
+            with open(self.usage_file, 'a') as myfile:
+                for i in range(4):
+                    timestamp = str(datetime.datetime.now()).split('.')[0]
+                    myfile.write('{} CPU usage = {}    MEM usage = {}\n'.format(timestamp, self.get_cpu_usage(), self.get_mem_usage()))
+                    time.sleep(self.update_frequency/4)
+                    myfile.flush()
 
     def start_updater(self):
         thread = threading.Thread(target=self.update_loop_trigger)
@@ -116,7 +132,4 @@ class resource_updater:
         conn.request('POST', meta_url + self.device_uuid, json.dumps(meta_data))
         conn = httplib.HTTPConnection(self.registry_url, self.registry_port)
         conn.request('POST', ip_url + self.device_uuid, json.dumps(ip_data))
-
-
-
 

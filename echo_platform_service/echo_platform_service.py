@@ -18,8 +18,9 @@ mqtt_ip = sys.argv[3]
 kafka_ip = sys.argv[4]
 update_frequency = int(sys.argv[5])
 ip_address = sys.argv[6]
+usage_file = sys.argv[7]
 
-updater = resource_updater.resource_updater(registry_url, registry_port, device_uuid, update_frequency)
+updater = resource_updater.resource_updater(registry_url, registry_port, device_uuid, update_frequency, usage_file)
 updater.register_device(ip_address)
 client = mqttclient.get_client(mqtt_ip, device_uuid, kafka_ip)
 # Self registering could code possibly go here.

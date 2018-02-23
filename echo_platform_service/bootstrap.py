@@ -14,6 +14,7 @@ registry_url = sys.argv[2]
 mqtt_client = sys.argv[3]
 kafka_ip = sys.argv[4]
 resource_update_frequency = sys.argv[5]
+usage_file = sys.argv[6]
 
 # to retrieve the local IP address
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -48,4 +49,4 @@ while True:
 
 print "Starting the platform service"
 subprocess.call(['/app/echo_platform_service/echo_platform_service.py', device_uuid, registry_url, mqtt_client, kafka_ip,
-                 resource_update_frequency, local_ip])
+                 resource_update_frequency, local_ip, usage_file])
