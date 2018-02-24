@@ -33,7 +33,7 @@ class resource_updater:
 
     def get_mem_usage(self):
         tot_m, used_m, free_m = map(int, os.popen('free -t -m').readlines()[-1].split()[1:])
-        return str(used_m / tot_m * 100)
+        return str((used_m * 1.0) / tot_m * 100)
 
     def get_cpu_payload(self, id):
         cpu_data = dict()
