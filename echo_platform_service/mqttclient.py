@@ -9,6 +9,7 @@ import logging
 mqttHost = '13.71.125.147'
 kafkabroker = '13.71.125.147'
 
+logging.basicConfig()
 logger = logging.getLogger('mqttclient')
 
 def on_connect(client, userdata, flags, rc):
@@ -29,18 +30,19 @@ def create_processor(params):
             id = client.create_processor(class_, name)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('create_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'create_processor', err.code, err.message)
+            if retry >= 3:
+                raise err
             raise err
         finally:
             retry +=1
             time.sleep(3)
             if id is not None:
                 break
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
 
     retry = 0
     while retry < 3:
@@ -48,17 +50,18 @@ def create_processor(params):
             client.set_processor_properties_and_relationships(id, properties, relationships, configs)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('create_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'set_processor_properties_and_relationships', err.code, err.message)
+            if retry >= 3:
+                raise err
             raise err
         finally:
             retry +=1
             time.sleep(3)
             break
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
 
     return id
 
@@ -73,18 +76,19 @@ def create_input_port(params):
             id = client.create_new_input_port(name)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('create_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'create_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
             raise err
         finally:
             retry +=1
             time.sleep(3)
             if id is not None:
                 break
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     return id
 
 
@@ -97,18 +101,19 @@ def enable_input_port(params):
             toReturn = client.enable_input_port(id)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('create_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'create_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
             raise err
         finally:
             retry +=1
             if toReturn is True:
                 break
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     return toReturn
 
 
@@ -122,18 +127,19 @@ def create_output_port(params):
             id = client.create_new_output_port(name)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('create_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'create_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
             raise err
         finally:
             retry +=1
             time.sleep(3)
             if id is not None:
                 break
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
 
     retry = 0
     while retry < 3:
@@ -141,17 +147,18 @@ def create_output_port(params):
             client.enable_output_port(id)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             if id is not None:
                 break
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
 
     return id
 
@@ -166,17 +173,18 @@ def create_rpg(params):
             id = client.create_remote_process_group(url)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             if id is not None:
                 break
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     return id
 
 
@@ -192,17 +200,18 @@ def create_connection(params):
             id = client.create_connection(from_id, to_id, relationship_name)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             if id is not None:
                 break
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     return id
 
 def connect_remote_input_port(params):
@@ -218,17 +227,18 @@ def connect_remote_input_port(params):
             id = client.connect_remote_input_port(rpg_id, port_id, proc_id, relationship)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             if id is not None:
                 break
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
 
     retry = 0
     while retry < 3:
@@ -237,15 +247,16 @@ def connect_remote_input_port(params):
             break
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     return id
 
 
@@ -262,17 +273,18 @@ def connect_remote_output_port(params):
             id = client.connect_remote_output_port(rpg_id, port_id, proc_id, relationship)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             if id is not None:
                 break
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
 
     retry = 0
     while retry < 3:
@@ -281,15 +293,16 @@ def connect_remote_output_port(params):
             break
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     return id
 
 
@@ -304,17 +317,18 @@ def start_processor(params):
             break
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             if id is not None:
                 break
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     return id
 
 
@@ -330,17 +344,18 @@ def create_kafka_consumer(params):
             id = client.create_processor(processor_class, processor_name)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             if id is not None:
                 break
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
 
     properties = dict()
     properties['topic'] = topic
@@ -356,15 +371,16 @@ def create_kafka_consumer(params):
             break
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     return id
 
 
@@ -380,17 +396,18 @@ def create_kafka_producer(params):
             id = client.create_processor(processor_class, processor_name)
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             if id is not None:
                 break
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     properties = dict()
     properties['topic'] = topic
     properties['brokerip'] = kafkabroker
@@ -404,15 +421,16 @@ def create_kafka_producer(params):
             break
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     return id
 
 
@@ -427,17 +445,18 @@ def enable_kafka_port(params):
             break
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             if id is None:
                 break
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
     return id
 
 
@@ -451,15 +470,16 @@ def stop_processor(params):
             break
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
         except NifiClient.NifiClient.FatalError as err:
             logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
                           'enable_output_port', err.code, err.message)
+            if retry >= 3:
+                raise err
         finally:
             retry +=1
             time.sleep(3)
-    if retry >=3:
-        logger.error('create_output_port: %s', 'NiFi asked to retry too many times')
-        raise RuntimeError
 
     return True
 
@@ -618,8 +638,10 @@ def on_message(client, userdata, msg):
                 id = remove_kafka_port(params)
                 type = 'KAFKA_PORT'
             response = dict([('id', id), ('type', type)])
-        except Exception as err:
-            response = "Error"
+        except NifiClient.NifiClient.RetryError as err:
+            response = dict([('id', id),('type', 'RetryError'),('expr', err.expression),('message',err.message)])
+        except NifiClient.NifiClient.FatalError as err:
+            response = dict([('id', id),('type', 'RetryError'),('expr', err.expression),('code',err.code),('message',err.message)])
         finally:
             datagram['responseSet'][str(i)] = response
             print methodName
