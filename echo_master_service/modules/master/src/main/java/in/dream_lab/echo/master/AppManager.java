@@ -32,7 +32,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
  * 
  * Modified by Siva on 5/26/17
  */
-public class AppManager implements Runnable{
+public class AppManager{
 	private DataflowInput inputDag;
 	private List<Device> devices;
 	private Map<Processor, Device> deviceMapping;
@@ -81,36 +81,34 @@ public class AppManager implements Runnable{
 	}
 	
 
-	@Override
-	public void run() {
+	public void startDAG() throws Exception {
+		Scheduler sc = new Scheduler();
+		this.devices = resourceDirectory.getDevices();
+		System.out.println("Got devices");
+		System.out.println(devices.size());
+		this.deviceMapping = sc.schedule(devices, inputDag);
+		System.out.println(deviceMapping);
 
-        Scheduler sc = new Scheduler();
-        this.devices = resourceDirectory.getDevices();
-        System.out.println("Got devices");
-        System.out.println(devices.size());
-        this.deviceMapping = sc.schedule(devices, inputDag);
-        System.out.println(deviceMapping);
+		System.out.println("inputDag");
 
-        System.out.println("inputDag");
+		NetworkVisibilityMatrix matrix =
+				new NetworkVisibilityMatrix("./networkvisibility.csv");
 
-        NetworkVisibilityMatrix matrix =
-               new NetworkVisibilityMatrix("./networkvisibility.csv");
-
-        deployer = new NifiDeployer(mqttClient, matrix);
-        inputDag = deployer.deployDag(deviceMapping, inputDag);
-        System.out.println("deploy done");
-        String inputJSONString;
-        try {
-            inputJSONString = mapper.writeValueAsString(inputDag);
-            inputJSONString = inputJSONString.replaceAll("\"", "\\\\\"");
-            System.out.println(inputJSONString);
-            System.out.println("------------------------------");
-            resourceDirectory.addDataFlow(deviceMapping, inputJSONString, uuid);
-            System.out.println("Should be added?");
-        } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+		deployer = new NifiDeployer(mqttClient, matrix);
+		inputDag = deployer.deployDag(deviceMapping, inputDag);
+		System.out.println("deploy done");
+		String inputJSONString;
+		try {
+			inputJSONString = mapper.writeValueAsString(inputDag);
+			inputJSONString = inputJSONString.replaceAll("\"", "\\\\\"");
+			System.out.println(inputJSONString);
+			System.out.println("------------------------------");
+			resourceDirectory.addDataFlow(deviceMapping, inputJSONString, uuid);
+			System.out.println("Should be added?");
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private static Device makeDevice(String IP) {
@@ -119,7 +117,7 @@ public class AppManager implements Runnable{
 		return dev;
 	}
 
-	public boolean rebalanceDAG() {
+	public boolean rebalanceDAG() throws Exception {
 	    Scheduler sc = new Scheduler();
 		this.devices = resourceDirectory.getDevices();
 		System.out.println("Got devices");
@@ -138,7 +136,7 @@ public class AppManager implements Runnable{
 		return true;
 	}
 
-	public boolean stopDAG() {
+	public boolean stopDAG() throws Exception {
 		
 		ObjectMapper mapper = new ObjectMapper();
         mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);

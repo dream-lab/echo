@@ -94,7 +94,7 @@ public class NifiDeployer implements AppDeployer {
     // **********************************************************************************
     // ************************** REBALANCE Beginning ***********************************
     // **********************************************************************************
-    public boolean rebalanceDag(Map<Processor, Device> newPlacementMap, DataflowInput input) {
+    public boolean rebalanceDag(Map<Processor, Device> newPlacementMap, DataflowInput input) throws Exception {
         // ID diff
         Set<Processor> processorsToMove = findMappingDiff(newPlacementMap);
         System.out.println("Size of diffset is " + processorsToMove.size());
@@ -143,7 +143,6 @@ public class NifiDeployer implements AppDeployer {
         } catch (MqttException e) {
             e.printStackTrace();
         }
-
         this.processorMapping = newPlacementMap;
 
         return true;
@@ -205,7 +204,7 @@ public class NifiDeployer implements AppDeployer {
 
     private void reconnect(Set<Processor> processorsToMove, Set<Processor> processorsToPause,
                            Map<Processor, Device> newPlacementMap, Set<Wiring> wiring, Set<NifiCommPort> portsToRemove,
-                           Set<NifiRPG> rpgsToRemove, Set<NifiKafkaPort> kafkaPortsToRemove) throws MqttException {
+                           Set<NifiRPG> rpgsToRemove, Set<NifiKafkaPort> kafkaPortsToRemove) throws MqttException, Exception {
 
         Map<Device, List<Processor>> newProcessors = populateNewProcessors(processorsToMove, newPlacementMap);
         Map<Device, List<NifiCommPort>> newPorts = new HashMap<>();
@@ -709,7 +708,7 @@ public class NifiDeployer implements AppDeployer {
 
     private void removeAssets(Set<Processor> processorsToMove, Set<Processor> processorsToPause,
                             Set<NifiCommPort> portsToRemove, Set<NifiRPG> rpgsToRemove,
-                            Set<NifiKafkaPort> kafkaPortsToRemove) {
+                            Set<NifiKafkaPort> kafkaPortsToRemove) throws Exception {
         Iterator<ActualWiring> wirings = iGlobalWiring.iterator();
         while (wirings.hasNext()) {
             ActualWiring wire = wirings.next();
@@ -819,7 +818,7 @@ public class NifiDeployer implements AppDeployer {
 
     private void stopAssets(Set<Processor> processorsToMove, Set<Processor> processorsToPause,
                               Set<NifiCommPort> portsToRemove, Set<NifiRPG> rpgsToRemove,
-                              Set<NifiKafkaPort> kafkaPortsToRemove) {
+                              Set<NifiKafkaPort> kafkaPortsToRemove) throws Exception {
         int datagramCount = 0;
         for (Map.Entry<Device, List<Processor>> entry : this.iProcessorMap.entrySet()) {
             Device device = entry.getKey();
@@ -1130,7 +1129,7 @@ public class NifiDeployer implements AppDeployer {
         return diffList;
     }
 
-    public boolean stopDag() {
+    public boolean stopDag() throws Exception {
         try {
             mqttClient.connect();
             stopArtifactsAndPurgeConnections();
@@ -1145,7 +1144,7 @@ public class NifiDeployer implements AppDeployer {
         return true;
     }
 
-    private void removeArtifacts() {
+    private void removeArtifacts() throws Exception {
         int datagramCount = 0;
         for (Map.Entry<Device, List<Processor>> entry : this.iProcessorMap.entrySet()) {
             Device device = entry.getKey();
@@ -1214,7 +1213,7 @@ public class NifiDeployer implements AppDeployer {
                 ControlResponseReceiver.receiveResponse(datagramCount, sessionId, mqttClient.getServerURI());
     }
 
-    private void stopArtifactsAndPurgeConnections() {
+    private void stopArtifactsAndPurgeConnections() throws Exception {
         int datagramCount = 0;
         for (Map.Entry<Device, List<Processor>> entry : this.iProcessorMap.entrySet()) {
             Device device = entry.getKey();
@@ -1543,7 +1542,7 @@ public class NifiDeployer implements AppDeployer {
     }
 
     public DataflowInput deployDag(Map<Processor, Device> placementMap,
-                                   DataflowInput input) {
+                                   DataflowInput input) throws Exception {
 
         this.processorMapping = placementMap;
         for (Map.Entry<Processor, Device> entry : this.processorMapping.entrySet()) {
@@ -1570,7 +1569,7 @@ public class NifiDeployer implements AppDeployer {
         return input;
     }
 
-    private void startAllProcessors() throws MqttException {
+    private void startAllProcessors() throws Exception {
         int datagramCount = 0;
         for (Map.Entry<Device, List<Processor>> entry : iProcessorMap.entrySet()) {
             String mqttTopic = entry.getKey().getDeviceUUID();
@@ -1606,7 +1605,7 @@ public class NifiDeployer implements AppDeployer {
                 ControlResponseReceiver.receiveResponse(datagramCount, sessionId, mqttClient.getServerURI());
     }
 
-    private void startAllPorts() throws MqttException {
+    private void startAllPorts() throws Exception {
         int datagramCount = 0;
         for (Map.Entry<Device, List<NifiCommPort>> entry : iPortMap.entrySet()) {
             String mqttTopic = entry.getKey().getDeviceUUID();
@@ -1655,7 +1654,7 @@ public class NifiDeployer implements AppDeployer {
                 ControlResponseReceiver.receiveResponse(datagramCount, sessionId, mqttClient.getServerURI());
     }
 
-    private void createRemoteConnections() throws MqttException {
+    private void createRemoteConnections() throws Exception {
 
         int datagramCount = 0;
         for (ActualWiring wiring : iGlobalWiring) {
@@ -1768,7 +1767,7 @@ public class NifiDeployer implements AppDeployer {
         return null;
     }
 
-    private void createConnections() throws MqttException {
+    private void createConnections() throws Exception {
 
         String ackTopic = sessionId;
         Map<Integer, Device> resourceIdMap = getResourceIdMap();
@@ -1860,7 +1859,7 @@ public class NifiDeployer implements AppDeployer {
         return nifiId;
     }
 
-    private void createProcessorsPortsAndRPGs() throws MqttException {
+    private void createProcessorsPortsAndRPGs() throws Exception {
         String ackTopic = sessionId;
 
         Map<Integer, Device> resourceIdMap = getResourceIdMap();

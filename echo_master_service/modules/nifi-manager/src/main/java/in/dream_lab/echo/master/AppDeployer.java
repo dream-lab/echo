@@ -19,8 +19,8 @@ public interface AppDeployer {
     // Each manager should make a single synchronous call to the deployer to
 
     //public boolean deployDag(Map<Processor, Device> placementMap, List<Wiring> wiring);
-    public boolean stopDag();
-    public DataflowInput deployDag(Map<Processor, Device> placementMap, DataflowInput input);
-    public boolean rebalanceDag(Map<Processor, Device> placementMap, DataflowInput input);
+    public boolean stopDag() throws Exception;
+    public DataflowInput deployDag(Map<Processor, Device> placementMap, DataflowInput input) throws Exception;
+    public boolean rebalanceDag(Map<Processor, Device> placementMap, DataflowInput input) throws Exception;
 
 }

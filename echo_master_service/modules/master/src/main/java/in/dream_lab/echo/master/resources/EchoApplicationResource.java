@@ -9,6 +9,7 @@ import in.dream_lab.echo.utils.DataflowInput;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -50,7 +51,12 @@ public class EchoApplicationResource {
         AppManager manager = new AppManager(applicationId, input);
         applicationMap.put(applicationId, manager);
 
-        manager.run();
+        try {
+            manager.startDAG();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new WebApplicationException(304);
+        }
         long endTime = System.currentTimeMillis();
         System.out.println("************* deploy took "+ (endTime - startTime) + "ms.");
         return app;
@@ -62,9 +68,16 @@ public class EchoApplicationResource {
     public EchoApplication stop(@QueryParam("uuid") String uuid) {
         long startTime = System.currentTimeMillis();
         AppManager manager = applicationMap.get(uuid);
-        boolean flag = manager.stopDAG();
+        boolean flag = false;
+        try {
+            flag = manager.stopDAG();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new WebApplicationException(304);
+        }
         long endTime = System.currentTimeMillis();
         System.out.println("************* stopping took "+ (endTime - startTime) + "ms.");
+
         if (flag) {
             applicationMap.remove(uuid);
             return new EchoApplication();
@@ -78,7 +91,12 @@ public class EchoApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public EchoApplication rebalance(@QueryParam("uuid") String uuid) {
         AppManager manager = applicationMap.get(uuid);
-        manager.rebalanceDAG();
+        try {
+            manager.rebalanceDAG();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new WebApplicationException(304);
+        }
         //boolean flag = manager.stopDAG();
         //if (flag) {
             //manager.rebalanceDAG();

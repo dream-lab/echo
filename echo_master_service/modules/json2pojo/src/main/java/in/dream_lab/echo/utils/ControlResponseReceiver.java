@@ -6,6 +6,7 @@ import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import javax.xml.ws.Response;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -68,11 +69,18 @@ public class ControlResponseReceiver implements MqttCallback{
         }
     }
 
-    public static Map<Integer, ResponseDatagram> receiveResponse(int count, String topicName, String broker) {
+    public static Map<Integer, ResponseDatagram> receiveResponse(int count, String topicName, String broker) throws Exception{
         ControlResponseReceiver receiver = new ControlResponseReceiver(broker, topicName, count);
         System.out.println("topicName " + topicName);
         System.out.println("count = " + count);
         receiver.run();
+        for (Map.Entry<Integer, ResponseDatagram> entry : receiver.responseSet.entrySet()) {
+            Integer resourceId = entry.getKey();
+            for (ControlResponse response : entry.getValue().getResponseSet().values()) {
+                if (response.getType().equals("RetryError"))
+                    throw new Exception("received RetryError from platform service");
+            }
+        }
         return receiver.responseSet;
     }
 
