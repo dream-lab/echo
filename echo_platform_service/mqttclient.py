@@ -655,7 +655,7 @@ def on_message(client, userdata, msg):
 
 def get_client(broker, topic, kafka_ip):
     #client = mqtt.Client()
-    client = mqtt.Client(client_id=topic)
+    client = mqtt.Client(client_id='Client-' + topic)
     client.on_connect = on_connect
     client.on_message = on_message
     global mqttHost
