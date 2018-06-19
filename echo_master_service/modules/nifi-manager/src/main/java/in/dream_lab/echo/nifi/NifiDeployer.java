@@ -615,6 +615,58 @@ public class NifiDeployer implements AppDeployer {
             }
         }
 
+       /** 
+         * START - INPUT PORT ISSUE
+         * Enable the input ports . The handling of input port is different from output ports
+         * in the platform service. An output port on creation is enabled by default but an 
+         * input port is not enabled by default and should be enabled.
+         * Currently added this piece only for input port. If this works, then similar thing
+         * must be done for kafka port as well
+         */
+        datagramCount = 0;
+        for (Map.Entry<Device, List<NifiCommPort>> entry : newPorts.entrySet()) {
+        	String mqttTopic = entry.getKey().getDeviceUUID();
+            ControlDatagram datagram = new ControlDatagram();
+            datagram.setAckTopic(sessionId);
+            datagram.setSessionId(sessionId);
+            datagram.setResourceId(entry.getKey().getDeviceUUID());
+            int sequence = 1;
+            for (NifiCommPort port : entry.getValue()) {
+                if (!port.isInput())
+                    continue;
+                ControlMethod method = new ControlMethod();
+                method.setMethodName("enable_input_port");
+                method.setSequenceId(sequence++);
+                Map<String, String> params = new HashMap<>();
+                params.put("port_id", port.getNifiId());
+                method.setParams(params);
+                datagram.addMethod(method);
+            } 
+            if (sequence == 1)
+                continue;
+            String payloadJson = "";
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                payloadJson = objectMapper.writeValueAsString(datagram);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            System.out.println(payloadJson);
+            // publish to Mqtt
+            MqttMessage message = new MqttMessage(payloadJson.getBytes());
+            message.setQos(2);
+            mqttClient.publish(mqttTopic, message);
+            datagramCount++;
+        }
+        responses =
+                ControlResponseReceiver.receiveResponse(datagramCount, sessionId, mqttClient.getServerURI());   
+
+        /**
+         * END - INPUT PORT ISSUE
+         */
+
+
+
         datagramCount = 0;
         for (ActualWiring wire : newGlobalWirings) {
             if (wire.getSourceType() == ActualWiring.KAFKA_PORT)
