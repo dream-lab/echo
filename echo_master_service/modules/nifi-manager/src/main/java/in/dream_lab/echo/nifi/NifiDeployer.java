@@ -540,13 +540,47 @@ public class NifiDeployer implements AppDeployer {
                 iKafkaMap.put(entry.getKey(), entry.getValue());
         }
         for (Map.Entry<Device, List<ActualWiring>> entry : newWirings.entrySet()) {
-            if (iWiringMap.get(entry.getKey()) == null)
-                iWiringMap.put(entry.getKey(), entry.getValue());
+             /*if (iWiringMap.get(entry.getKey()) == null)
+                iWiringMap.put(entry.getKey(), entry.getValue());*/
+        	List<ActualWiring> updatedWirings = iWiringMap.get(entry.getKey());
+        	if(updatedWirings == null)
+        		updatedWirings = new ArrayList<>();
+        	updatedWirings.addAll(entry.getValue());
+        	iWiringMap.put(entry.getKey(), updatedWirings);
         }
 
         for (Map.Entry<Device, List<Processor>> entry : newProcessors.entrySet()) {
 
         }
+
+        /**
+         * If we go from a configuration containing more devices to a configuration containing
+         * fewer devices, then we can remove the devices which are not in use anymore. Those devices
+         * won't contain any processors,rpgs or any ports.
+         */
+        Iterator<Device> deviceIter = iProcessorMap.keySet().iterator();
+        while(deviceIter.hasNext()) {
+        	Device device = deviceIter.next();
+        	if((iProcessorMap.get(device) == null || iProcessorMap.get(device).isEmpty()) &&
+        			(iRPGMap.get(device) == null || iRPGMap.get(device).isEmpty()) &&
+        			(iPortMap.get(device) == null || iPortMap.get(device).isEmpty()) &&
+        			(iKafkaMap.get(device) == null || iKafkaMap.get(device).isEmpty()) &&
+        			(iWiringMap.get(device) == null || iWiringMap.get(device).isEmpty())) {
+        		System.out.println("This device has no elements attached to it, so safe to remove it");
+        		System.out.println("Removing device with UUID : " + device.getDeviceUUID());
+        		/*
+        		 * Since we are iterating over iProcessorMap, do not remove explicitly remove
+        		 * from the collection, remove using the iterator
+        		 */
+        		deviceIter.remove();
+        		iRPGMap.remove(device);
+        		iPortMap.remove(device);
+        		iKafkaMap.remove(device);
+        		iWiringMap.remove(device);
+        		System.out.println("Done with removing unused elements");
+        	}
+        }
+
 
 
         /****Now, Connect these assets
