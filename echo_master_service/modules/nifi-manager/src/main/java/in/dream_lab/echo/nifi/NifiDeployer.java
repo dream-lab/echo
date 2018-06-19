@@ -722,6 +722,14 @@ public class NifiDeployer implements AppDeployer {
         responses =
                 ControlResponseReceiver.receiveResponse(datagramCount, sessionId, mqttClient.getServerURI());
 
+
+        /**
+         * Critical Bug: Assume we move from a configuration EFC(2:1:5) to EFC(2:0:6)
+         * wherein no processor now on Fog, in such a scenario (first of all remove those
+         * devices which have no part to play, however this is done in a separate issue) 
+         * still sending message to such device will never get you a reply and master
+         * will be unresponsive.
+         */
         datagramCount = 0;
         for (Map.Entry<Device, List<Processor>> entry : iProcessorMap.entrySet()) {
             String mqttTopic = entry.getKey().getDeviceUUID();
@@ -739,6 +747,13 @@ public class NifiDeployer implements AppDeployer {
                 method.setParams(params);
                 datagram.addMethod(method);
             }
+
+            /**
+             * A possible fix for the above mentioned critical issue
+             */
+            if(sequence == 1)
+            	continue;
+
             String payloadJson = "";
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
