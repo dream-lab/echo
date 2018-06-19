@@ -723,6 +723,13 @@ public class NifiDeployer implements AppDeployer {
                 ControlResponseReceiver.receiveResponse(datagramCount, sessionId, mqttClient.getServerURI());
 
 
+       /**
+         * iGlobalWiring is not updated which will create issues in the next rebalance. 
+         * Check if this is the case and if so, raise issue in github.
+         */
+        iGlobalWiring.addAll(newGlobalWirings);
+
+
         /**
          * Critical Bug: Assume we move from a configuration EFC(2:1:5) to EFC(2:0:6)
          * wherein no processor now on Fog, in such a scenario (first of all remove those
