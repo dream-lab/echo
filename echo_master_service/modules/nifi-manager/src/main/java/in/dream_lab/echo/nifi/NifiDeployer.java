@@ -540,13 +540,47 @@ public class NifiDeployer implements AppDeployer {
                 iKafkaMap.put(entry.getKey(), entry.getValue());
         }
         for (Map.Entry<Device, List<ActualWiring>> entry : newWirings.entrySet()) {
-            if (iWiringMap.get(entry.getKey()) == null)
-                iWiringMap.put(entry.getKey(), entry.getValue());
+             /*if (iWiringMap.get(entry.getKey()) == null)
+                iWiringMap.put(entry.getKey(), entry.getValue());*/
+        	List<ActualWiring> updatedWirings = iWiringMap.get(entry.getKey());
+        	if(updatedWirings == null)
+        		updatedWirings = new ArrayList<>();
+        	updatedWirings.addAll(entry.getValue());
+        	iWiringMap.put(entry.getKey(), updatedWirings);
         }
 
         for (Map.Entry<Device, List<Processor>> entry : newProcessors.entrySet()) {
 
         }
+
+        /**
+         * If we go from a configuration containing more devices to a configuration containing
+         * fewer devices, then we can remove the devices which are not in use anymore. Those devices
+         * won't contain any processors,rpgs or any ports.
+         */
+        Iterator<Device> deviceIter = iProcessorMap.keySet().iterator();
+        while(deviceIter.hasNext()) {
+        	Device device = deviceIter.next();
+        	if((iProcessorMap.get(device) == null || iProcessorMap.get(device).isEmpty()) &&
+        			(iRPGMap.get(device) == null || iRPGMap.get(device).isEmpty()) &&
+        			(iPortMap.get(device) == null || iPortMap.get(device).isEmpty()) &&
+        			(iKafkaMap.get(device) == null || iKafkaMap.get(device).isEmpty()) &&
+        			(iWiringMap.get(device) == null || iWiringMap.get(device).isEmpty())) {
+        		System.out.println("This device has no elements attached to it, so safe to remove it");
+        		System.out.println("Removing device with UUID : " + device.getDeviceUUID());
+        		/*
+        		 * Since we are iterating over iProcessorMap, do not remove explicitly remove
+        		 * from the collection, remove using the iterator
+        		 */
+        		deviceIter.remove();
+        		iRPGMap.remove(device);
+        		iPortMap.remove(device);
+        		iKafkaMap.remove(device);
+        		iWiringMap.remove(device);
+        		System.out.println("Done with removing unused elements");
+        	}
+        }
+
 
 
         /****Now, Connect these assets
@@ -615,6 +649,58 @@ public class NifiDeployer implements AppDeployer {
             }
         }
 
+       /** 
+         * START - INPUT PORT ISSUE
+         * Enable the input ports . The handling of input port is different from output ports
+         * in the platform service. An output port on creation is enabled by default but an 
+         * input port is not enabled by default and should be enabled.
+         * Currently added this piece only for input port. If this works, then similar thing
+         * must be done for kafka port as well
+         */
+        datagramCount = 0;
+        for (Map.Entry<Device, List<NifiCommPort>> entry : newPorts.entrySet()) {
+        	String mqttTopic = entry.getKey().getDeviceUUID();
+            ControlDatagram datagram = new ControlDatagram();
+            datagram.setAckTopic(sessionId);
+            datagram.setSessionId(sessionId);
+            datagram.setResourceId(entry.getKey().getDeviceUUID());
+            int sequence = 1;
+            for (NifiCommPort port : entry.getValue()) {
+                if (!port.isInput())
+                    continue;
+                ControlMethod method = new ControlMethod();
+                method.setMethodName("enable_input_port");
+                method.setSequenceId(sequence++);
+                Map<String, String> params = new HashMap<>();
+                params.put("port_id", port.getNifiId());
+                method.setParams(params);
+                datagram.addMethod(method);
+            } 
+            if (sequence == 1)
+                continue;
+            String payloadJson = "";
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                payloadJson = objectMapper.writeValueAsString(datagram);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            System.out.println(payloadJson);
+            // publish to Mqtt
+            MqttMessage message = new MqttMessage(payloadJson.getBytes());
+            message.setQos(2);
+            mqttClient.publish(mqttTopic, message);
+            datagramCount++;
+        }
+        responses =
+                ControlResponseReceiver.receiveResponse(datagramCount, sessionId, mqttClient.getServerURI());   
+
+        /**
+         * END - INPUT PORT ISSUE
+         */
+
+
+
         datagramCount = 0;
         for (ActualWiring wire : newGlobalWirings) {
             if (wire.getSourceType() == ActualWiring.KAFKA_PORT)
@@ -670,6 +756,21 @@ public class NifiDeployer implements AppDeployer {
         responses =
                 ControlResponseReceiver.receiveResponse(datagramCount, sessionId, mqttClient.getServerURI());
 
+
+       /**
+         * iGlobalWiring is not updated which will create issues in the next rebalance. 
+         * Check if this is the case and if so, raise issue in github.
+         */
+        iGlobalWiring.addAll(newGlobalWirings);
+
+
+        /**
+         * Critical Bug: Assume we move from a configuration EFC(2:1:5) to EFC(2:0:6)
+         * wherein no processor now on Fog, in such a scenario (first of all remove those
+         * devices which have no part to play, however this is done in a separate issue) 
+         * still sending message to such device will never get you a reply and master
+         * will be unresponsive.
+         */
         datagramCount = 0;
         for (Map.Entry<Device, List<Processor>> entry : iProcessorMap.entrySet()) {
             String mqttTopic = entry.getKey().getDeviceUUID();
@@ -687,6 +788,13 @@ public class NifiDeployer implements AppDeployer {
                 method.setParams(params);
                 datagram.addMethod(method);
             }
+
+            /**
+             * A possible fix for the above mentioned critical issue
+             */
+            if(sequence == 1)
+            	continue;
+
             String payloadJson = "";
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
