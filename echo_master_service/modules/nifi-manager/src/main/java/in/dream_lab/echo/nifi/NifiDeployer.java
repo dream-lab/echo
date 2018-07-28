@@ -986,8 +986,11 @@ public class NifiDeployer implements AppDeployer {
                 }
             }
 
-            Iterator<ActualWiring> iter = this.iWiringMap.get(device).iterator();
-            while (iter.hasNext()) {
+            Iterator<ActualWiring> iter = null;
+            if(this.iWiringMap.containsKey(device)) {
+                iter = this.iWiringMap.get(device).iterator();
+            }
+            while (iter != null && iter.hasNext()) {
                 ActualWiring wiring = iter.next();
                 if ( (wiring.getSourceType().equals(ActualWiring.PROCESSOR) &&
                     processorsToMove.contains(getProcessorFromUUID(wiring.getSourceId()))) ||
