@@ -61,6 +61,9 @@ public class KafkaFlowFilesConsumer extends AbstractProcessor {
 
 	public static final Relationship SUCCESS = new Relationship.Builder().name("success").description("On success")
 			.autoTerminateDefault(false).build();
+	
+	//ALPR specific
+	public static final String TOPIC_TYPE = "entry_exit";
 
 	private List<PropertyDescriptor> descriptors;
 	private Set<Relationship> relationships;
@@ -134,8 +137,9 @@ public class KafkaFlowFilesConsumer extends AbstractProcessor {
 	}
 
 	/* (non-Javadoc)
-	 * This consumer will have 8 bytes plus the content , 8 bytes are used to store the
-	 * flowfileId which the producer should add to the byte content
+	 * This consumer will have a long followed by an int followed by 
+	 * topic type followed by the actual image content
+	 * For what this means, check the corresponding producer
 	 */
 	@Override
 	public void onTrigger(ProcessContext context, ProcessSession session) throws ProcessException {
@@ -145,10 +149,13 @@ public class KafkaFlowFilesConsumer extends AbstractProcessor {
 		if (!records.isEmpty()) {
 			for (ConsumerRecord<String, byte[]> record : records) {
 				final byte[] idAndContent = record.value();
-				ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-				buffer.put(Arrays.copyOfRange(idAndContent, 0, Long.BYTES));
+				ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + Integer.BYTES);
+				buffer.put(Arrays.copyOfRange(idAndContent, 0, Long.BYTES + Integer.BYTES));
 				buffer.flip();
 				Long flowFileId = buffer.getLong();
+				int topicTypeLength = buffer.getInt();
+				String topicType = new String(Arrays.copyOfRange(idAndContent,
+						Long.BYTES + Integer.BYTES, Long.BYTES + Integer.BYTES + topicTypeLength));
 				FlowFile flowFile = session.create();
 				flowFile = session.putAttribute(flowFile, ExperimentAttributes.FLOWFILE_ID.key(),
 						flowFileId.toString());
@@ -156,16 +163,17 @@ public class KafkaFlowFilesConsumer extends AbstractProcessor {
 				expLogStream.println(String.format("%s,%s,%s,%s", flowFile.getAttribute(ExperimentAttributes.FLOWFILE_ID.key()),
 						KafkaFlowFilesConsumer.class, (new Timestamp(System.currentTimeMillis())).getTime(), "ENTRY"));
 				//this is application specific and done for ALPR for now
-				if(topic.contains("entry")) {
-					flowFile = session.putAttribute(flowFile, "entry_exit", "entry");
+				if(topicType.contains("entry")) {
+					flowFile = session.putAttribute(flowFile, TOPIC_TYPE, "entry");
 				} else {
-					flowFile = session.putAttribute(flowFile, "entry_exit", "exit");
+					flowFile = session.putAttribute(flowFile, TOPIC_TYPE, "exit");
 				}
 				flowFile = session.putAttribute(flowFile, "msgId", Long.toString(record.offset()));
 				flowFile = session.write(flowFile, new OutputStreamCallback() {
 
 					public void process(OutputStream out) throws IOException {
-						out.write(Arrays.copyOfRange(idAndContent, Long.BYTES, idAndContent.length));
+						out.write(Arrays.copyOfRange(idAndContent,
+								Long.BYTES + Integer.BYTES + topicTypeLength, idAndContent.length));
 					}
 				});
 				session.transfer(flowFile, SUCCESS);

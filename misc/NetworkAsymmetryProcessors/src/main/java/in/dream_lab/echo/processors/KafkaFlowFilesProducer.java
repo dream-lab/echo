@@ -54,6 +54,9 @@ public class KafkaFlowFilesProducer extends AbstractProcessor {
 
 	public static final Relationship SUCCESS = new Relationship.Builder().name("success").description("On success")
 			.autoTerminateDefault(true).build();
+	
+	// ALPR specific
+	public static final String TOPIC_TYPE = "entry_exit";
 
 	private List<PropertyDescriptor> descriptors;
 	private Set<Relationship> relationships;
@@ -114,6 +117,12 @@ public class KafkaFlowFilesProducer extends AbstractProcessor {
 		producer = new KafkaProducer<String, byte[]>(props);
 	}
 
+	/* (non-Javadoc)
+	 * The producer will publish the message in the following format
+	 * long (flowFileId) followed by integer (length of topic type) 
+	 * followed by actual string for topic type followed by the
+	 * actual byte array for the image
+	 */
 	@Override
 	public void onTrigger(ProcessContext context, ProcessSession session) throws ProcessException {
 		FlowFile flowFile = session.get();
@@ -121,6 +130,9 @@ public class KafkaFlowFilesProducer extends AbstractProcessor {
 			return;
 		openFile(context.getProperty(EXPERIMENT_LOG_FILE).getValue());
 		final long flowFileId = Long.parseLong(flowFile.getAttribute(ExperimentAttributes.FLOWFILE_ID.key()));
+		//ALPR specific
+		String topicType = flowFile.getAttribute(TOPIC_TYPE);
+		int topicTypeLength = topicType.length();
 		expLogStream.println(String.format("%s,%s,%s,%s", flowFile.getAttribute(ExperimentAttributes.FLOWFILE_ID.key()),
 				KafkaFlowFilesProducer.class, (new Timestamp(System.currentTimeMillis())).getTime(), "ENTRY"));
 		session.read(flowFile, new InputStreamCallback() {
@@ -128,13 +140,13 @@ public class KafkaFlowFilesProducer extends AbstractProcessor {
 			@Override
 			public void process(InputStream in) throws IOException {
 				byte[] imageContent = IOUtils.toByteArray(in);
-				ByteBuffer idBuf = ByteBuffer.allocate(Long.BYTES);
+				ByteBuffer idBuf = ByteBuffer.allocate(Long.BYTES + Integer.BYTES + topicTypeLength);
 				idBuf.putLong(flowFileId);
-				ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES + imageContent.length);
-				buffer.put(idBuf.array(), 0, Long.BYTES);
-				//NPE in below line , FIX IT
-				buffer.put(imageContent, Long.BYTES, buffer.capacity());
-				// String content = IOUtils.toString(in, StandardCharsets.UTF_8);
+				idBuf.putInt(topicTypeLength);
+				idBuf.put(topicType.getBytes());
+				ByteBuffer buffer = ByteBuffer.allocate(idBuf.capacity() + imageContent.length);
+				buffer.put(idBuf.array(), 0, idBuf.capacity());
+				buffer.put(imageContent, 0, buffer.capacity() - idBuf.capacity());
 				ProducerRecord<String, byte[]> record = 
 						new ProducerRecord<String, byte[]>(topic, "test", buffer.array());
 				producer.send(record, new Callback() {
