@@ -1,0 +1,2 @@
+in.dream_lab.echo.processors.KafkaFlowFilesConsumer
+in.dream_lab.echo.processors.KafkaFlowFilesProducer
