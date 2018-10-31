@@ -26,6 +26,6 @@ client = mqttclient.get_client(mqtt_ip, device_uuid, kafka_ip)
 # Self registering could code possibly go here.
 # In fact NiFi startup could also go here.
 # This should be run at startup inside the container.
-updater_thread = updater.start_updater()
+#updater_thread = updater.start_updater()
 client.subscribe(device_uuid,2)
 client.loop_forever()
