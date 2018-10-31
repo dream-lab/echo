@@ -13,8 +13,10 @@ import in.dream_lab.echo.utils.InputStream;
 
 public class Scheduler {
 
+	private static int lastDeviceId = 0;
+	
 	public Scheduler() {
-		// TODO Auto-generated constructor stub
+		
 	}
 	
 	
@@ -36,14 +38,19 @@ public class Scheduler {
 				}
 			}
 		}
-		/*TODO: Test*/
-		int current = (int) ((Math.random()*1000)%devices.size());
+		/* For scalability test, given deployment done one by one 
+		 * no need to synchronize and just increment lastDeviceId 
+		 * For concurrent deployments, need proper handling and 
+		 * single variable might not work.
+		 */
+		int current = lastDeviceId;
 		for(Processor processor : processors){
 		    if (processor.getIsInput())
 		    	continue;
 			mapping.put(processor, devices.get(current));
 			current = (current + 1)%devices.size();
 		}
+		lastDeviceId = current;
 		return mapping;
 	}
 }

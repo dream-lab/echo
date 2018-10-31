@@ -1,16 +1,17 @@
 package in.dream_lab.echo.master;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
+
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
@@ -18,14 +19,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import in.dream_lab.echo.nifi.NifiDeployer;
 import in.dream_lab.echo.utils.DataflowInput;
 import in.dream_lab.echo.utils.Device;
 import in.dream_lab.echo.utils.Processor;
-import in.dream_lab.echo.utils.Wiring;
-import in.dream_lab.echo.nifi.NifiDeployer;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 /**
  * Created by pushkar on 5/16/17.
@@ -84,6 +81,20 @@ public class AppManager{
 	public void startDAG() throws Exception {
 		Scheduler sc = new Scheduler();
 		this.devices = resourceDirectory.getDevices();
+		/* To run the scalability test, we want to deploy
+		 * in an incremental order so better keep devices
+		 * in sorted order of deviceUUID's
+		 */
+		Collections.sort(this.devices, new Comparator<Device>() {
+
+			@Override
+			public int compare(Device d1, Device d2) {
+				Integer id1 = Integer.parseInt(d1.getDeviceUUID());
+				Integer id2 = Integer.parseInt(d2.getDeviceUUID());
+				return id1.compareTo(id2);
+			}
+		});
+		
 		System.out.println("Got devices");
 		System.out.println(devices.size());
 		this.deviceMapping = sc.schedule(devices, inputDag);
