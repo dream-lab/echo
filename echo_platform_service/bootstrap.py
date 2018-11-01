@@ -22,12 +22,15 @@ s.connect(("8.8.8.8", 80))
 local_ip = s.getsockname()[0]
 s.close()
 
+text = ''
+
 # change the IP address in nifi.properites
 with open('/app/nifi-1.2.0/conf/nifi.properties', 'r') as in_file:
     text = in_file.read()
 
 with open('/app/nifi-1.2.0/conf/nifi.properties', 'w') as out_file:
-    out_file.write(text.replace('nifi.remote.input.host=', 'nifi.remote.input.host='+local_ip))
+    text = text.replace('nifi.remote.input.host=', 'nifi.remote.input.host='+local_ip)
+    out_file.write(text)
 print "Changed nifi.properties file. Added local IP."
 
 
