@@ -22,6 +22,6 @@ COPY ./ETL/* /app/data/
 
 RUN yum install -y python-pip
 RUN pip install paho-mqtt
-RUN yum install -y java-1.8.0-openjdk
+RUN yum install -y java-1.8.0-openjdk-devel
 RUN yum install -y openssh-clients
 
