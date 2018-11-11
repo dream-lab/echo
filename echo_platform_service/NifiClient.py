@@ -662,7 +662,7 @@ class NifiClient():
                      {'Content-Type':'application/json'})
         response = conn.getresponse()
         if response.status == 200 or response.status == 201:
-            return True
+            return json.loads(response.read().decode('utf-8'))['id']
         elif response.status == 409:
             raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
         else:
