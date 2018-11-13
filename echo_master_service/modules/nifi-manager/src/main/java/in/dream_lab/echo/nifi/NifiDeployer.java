@@ -699,6 +699,43 @@ public class NifiDeployer implements AppDeployer {
          * END - INPUT PORT ISSUE
          */
 
+        /*
+         * The new kafka ports are not enabled, this is to handle them
+         */
+		datagramCount = 0;
+		for (Map.Entry<Device, List<NifiKafkaPort>> entry : newKafkaPorts.entrySet()) {
+			String mqttTopic = entry.getKey().getDeviceUUID();
+			ControlDatagram datagram = new ControlDatagram();
+			datagram.setAckTopic(sessionId);
+			datagram.setSessionId(sessionId);
+			datagram.setResourceId(entry.getKey().getDeviceUUID());
+			int sequence = 1;
+			for (NifiKafkaPort port : entry.getValue()) {
+				ControlMethod method = new ControlMethod();
+				method.setMethodName("enable_kafka_port");
+				method.setSequenceId(sequence++);
+				Map<String, String> params = new HashMap<>();
+				params.put("port_id", port.getNifiId());
+				method.setParams(params);
+				datagram.addMethod(method);
+			}
+			if (sequence == 1)
+				continue;
+			String payloadJson = "";
+			try {
+				ObjectMapper objectMapper = new ObjectMapper();
+				payloadJson = objectMapper.writeValueAsString(datagram);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+			System.out.println(payloadJson);
+			// publish to Mqtt
+			MqttMessage message = new MqttMessage(payloadJson.getBytes());
+			message.setQos(2);
+			mqttClient.publish(mqttTopic, message);
+			datagramCount++;
+		}
+		responses = ControlResponseReceiver.receiveResponse(datagramCount, sessionId, mqttClient.getServerURI());
 
 
         datagramCount = 0;
