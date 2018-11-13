@@ -618,10 +618,13 @@ def on_message(client, userdata, msg):
                 type = 'PORT'
             elif methodName == 'disable_rpg':
                 id = disable_rpg(params)
-                type = 'PORT'
+                type = 'RPG'
+            elif methodName == 'disable_kafka_port':
+                id = disable_kafka_port(params)
+                type = 'KAFKA_PORT' 
             elif methodName == 'purge_connection':
                 id = purge_connection(params)
-                type = 'PORT'
+                type = 'CONNECTION'
             elif methodName == 'remove_processor':
                 id = remove_processor(params)
                 type = 'PROCESSOR'
