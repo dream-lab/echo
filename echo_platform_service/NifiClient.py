@@ -668,7 +668,7 @@ class NifiClient():
         else:
             raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
-    def enable_rpg_transmission(self, rpg_id, port_id):
+    def enable_rpg_transmission(self, rpg_id, port_id, is_input = True):
         put_body = json.dumps({
             "component": {
                 "id": rpg_id,
@@ -697,7 +697,11 @@ class NifiClient():
                }
            })
             conn = self.connect_to_nifi()
-            conn.request('PUT', '/nifi-api/remote-process-groups/' + rpg_id + '/input-ports/' + port_id, put_candidate_port_body, {'Content-Type':'application/json'})
+            if is_input == True:
+                request_url = '/nifi-api/remote-process-groups/' + rpg_id + '/input-ports/' + port_id
+            else:
+                request_url = '/nifi-api/remote-process-groups/' + rpg_id + '/output-ports/' + port_id
+            conn.request('PUT', request_url, put_candidate_port_body, {'Content-Type':'application/json'})
             response = conn.getresponse()
             if response.status == 200:
                 return True
