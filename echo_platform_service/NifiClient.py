@@ -668,7 +668,7 @@ class NifiClient():
         else:
             raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
-    def enable_rpg_transmission(self, rpg_id):
+    def enable_rpg_transmission(self, rpg_id, port_id):
         put_body = json.dumps({
             "component": {
                 "id": rpg_id,
@@ -684,7 +684,25 @@ class NifiClient():
         if response.status == 200:
             return True
         elif response.status == 409:
-            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+            #raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
+            #this happens due to a conflict when multiple candidate input ports are present
+            put_candidate_port_body = json.dumps({
+               "remoteProcessGroupPort": {
+                   "id": port_id,
+                   "groupId": rpg_id,
+                   "transmitting": True
+               }, "revision": {
+                "clientId": str(uuid.uuid4()),
+                "version": self.get_remote_process_group(rpg_id)['revision']['version']
+               }
+           })
+            conn = self.connect_to_nifi()
+            conn.request('PUT', '/nifi-api/remote-process-groups/' + rpg_id + '/input-ports/' + port_id, put_candidate_port_body, {'Content-Type':'application/json'})
+            response = conn.getresponse()
+            if response.status == 200:
+                return True
+            else:
+                raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
         else:
             raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
 
