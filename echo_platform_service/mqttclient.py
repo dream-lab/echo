@@ -243,7 +243,7 @@ def connect_remote_input_port(params):
     retry = 0
     while retry < 3:
         try:
-            client.enable_rpg_transmission(rpg_id, port_id)
+            client.enable_rpg_transmission(rpg_id, port_id, True)
             break
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
@@ -289,7 +289,7 @@ def connect_remote_output_port(params):
     retry = 0
     while retry < 3:
         try:
-            client.enable_rpg_transmission(rpg_id, port_id)
+            client.enable_rpg_transmission(rpg_id, port_id, False)
             break
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('enable_output_port: %s', 'NiFi in bad state, retrying')
