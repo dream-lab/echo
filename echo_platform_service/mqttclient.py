@@ -510,13 +510,16 @@ def disable_rpg(params):
     rpg_id = params['rpg_id']
     client.disable_rpg_transmission(rpg_id)
     adjacent_connections = client.get_connections_for_rpg(rpg_id)
+    #this is not right when rpg has multiple connections
+    # but staying with it for now
+    result = False
     for connection in adjacent_connections:
         client.empty_connection(connection)
         #this looks like the pain point
         retry = 0
         while retry < 3:
             try:
-                client.remove_connection(connection)
+                result = result or client.remove_connection(connection)
                 break
             except NifiClient.NifiClient.RetryError as err:
                 logger.warning('remove_connection: %s', 'NiFi in bad state, retrying')
@@ -531,7 +534,7 @@ def disable_rpg(params):
                 retry += 1
                 time.sleep(3)
 
-    return True
+    return result
 
 
 def purge_connection(params):
@@ -539,10 +542,11 @@ def purge_connection(params):
     connection_id = params['connection_id']
     client.empty_connection(connection_id)
     #this looks like the pain point
-    retry = 0 
+    retry = 0
+    result = False 
     while retry < 3:
         try:
-            client.remove_connection(connection_id)
+            result = client.remove_connection(connection_id)
             break
         except NifiClient.NifiClient.RetryError as err:
             logger.warning('remove_connection: %s', 'NiFi in bad state, retrying')
@@ -557,13 +561,32 @@ def purge_connection(params):
             retry += 1
             time.sleep(3)
 
-    return True
+    return result
 
 
 def remove_processor(params):
     client = NifiClient.NifiClient('127.0.0.1', 8080)
     proc_id = params['proc_id']
-    return client.delete_processor(proc_id)
+    retry = 0
+    result = False
+    while retry < 3:
+        try:
+            result = client.delete_processor(proc_id)
+            break
+        except NifiClient.NifiClient.RetryError as err:
+            logger.warning('delete_processor: %s', 'NiFi in bad state, retrying')
+            if retry >= 3:
+                raise err
+        except NifiClient.NifiClient.FatalError as err:
+            logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
+                            'delete_processor', err.code, err.message)
+            if retry >= 3:
+                raise err
+        finally:
+            retry += 1
+            time.sleep(3)
+
+    return result
 
 
 def remove_input_port(params):
