@@ -341,10 +341,7 @@ class NifiClient():
         if response.status == 200:
             # payload = json.loads(response.read().decode('utf-8'))
             return True
-        elif response.status == 409:
-            raise self.RetryError("Nifi was in invalid state. Please retry!", response.read().decode('utf-8'))
-        else:
-            raise self.FatalError("Nifi returned an error. Cannot retry", response.status, response.read().decode('utf-8'))
+        return False
 
     def get_input_ports(self, debug = False):
         conn = self.connect_to_nifi()

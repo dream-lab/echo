@@ -512,25 +512,7 @@ def disable_rpg(params):
     adjacent_connections = client.get_connections_for_rpg(rpg_id)
     for connection in adjacent_connections:
         client.empty_connection(connection)
-        #this looks like the pain point
-        retry = 0
-        while retry < 3:
-            try:
-                client.remove_connection(connection)
-                break
-            except NifiClient.NifiClient.RetryError as err:
-                logger.warning('remove_connection: %s', 'NiFi in bad state, retrying')
-                if retry >= 3:
-                    raise err
-            except NifiClient.NifiClient.FatalError as err:
-                logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
-                          'disable_rpg', err.code, err.message)
-                if retry >= 3:
-                    raise err
-            finally:
-                retry += 1
-                time.sleep(3)
-
+        client.remove_connection(connection)
     return True
 
 
@@ -538,25 +520,7 @@ def purge_connection(params):
     client = NifiClient.NifiClient('127.0.0.1', 8080)
     connection_id = params['connection_id']
     client.empty_connection(connection_id)
-    #this looks like the pain point
-    retry = 0 
-    while retry < 3:
-        try:
-            client.remove_connection(connection_id)
-            break
-        except NifiClient.NifiClient.RetryError as err:
-            logger.warning('remove_connection: %s', 'NiFi in bad state, retrying')
-            if retry >= 3:
-                raise err 
-        except NifiClient.NifiClient.FatalError as err:
-            logger.error('%s: %s, \n status : %s \n message: %s', 'NiFi returned invalid message',
-                          'disable_rpg', err.code, err.message)
-            if retry >= 3:
-                raise err 
-        finally:
-            retry += 1
-            time.sleep(3)
-
+    client.remove_connection(connection_id)
     return True
 
 
