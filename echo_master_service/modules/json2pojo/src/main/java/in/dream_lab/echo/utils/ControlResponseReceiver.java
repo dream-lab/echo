@@ -50,7 +50,7 @@ public class ControlResponseReceiver implements MqttCallback{
 
     public void run() {
         MqttConnectOptions connOpt = new MqttConnectOptions();
-        connOpt.setCleanSession(true);
+        connOpt.setCleanSession(false);
         try {
             System.out.println(this.broker);
             System.out.println("----");

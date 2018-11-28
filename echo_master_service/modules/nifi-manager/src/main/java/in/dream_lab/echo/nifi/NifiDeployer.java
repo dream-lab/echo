@@ -150,9 +150,9 @@ public class NifiDeployer implements AppDeployer {
 		System.out.println("*");
 
 		MqttConnectOptions connOpts = new MqttConnectOptions();
-		connOpts.setCleanSession(true);
+		connOpts.setCleanSession(false);
 		try {
-			mqttClient.connect();
+			mqttClient.connect(connOpts);
 
 			stopAssets(processorsToMove, processorsToPause, portsToRemove, rpgsToRemove, kafkaPortsToRemove);
 			System.out.println("assets stopped");
@@ -1068,6 +1068,72 @@ public class NifiDeployer implements AppDeployer {
 				}
 			}
 
+			/*if (this.iWiringMap.get(device) != null) {
+				Iterator<ActualWiring> iter = this.iWiringMap.get(device).iterator();
+				while (iter.hasNext()) {
+					ActualWiring wiring = iter.next();
+					if ((wiring.getSourceType().equals(ActualWiring.PROCESSOR)
+							&& processorsToMove.contains(getProcessorFromUUID(wiring.getSourceId())))
+							|| (wiring.getDestinationType().equals(ActualWiring.PROCESSOR)
+									&& processorsToMove.contains(getProcessorFromUUID(wiring.getDestinationId())))
+							|| (wiring.getSourceType().equals(ActualWiring.INPUT_PORT) && portsToRemove
+									.contains(getDeviceAndPort(wiring.getSourceId(), iPortMap).getRight()))
+							|| (wiring.getDestinationType().equals(ActualWiring.OUTPUT_PORT) && portsToRemove
+									.contains((getDeviceAndPort(wiring.getDestinationId(), iPortMap).getRight())))
+							|| (wiring.getSourceType().equals(ActualWiring.KAFKA_PORT) && kafkaPortsToRemove
+									.contains(getDeviceAndKafkaPort(wiring.getSourceId(), iKafkaMap).getRight()))
+							|| (wiring.getDestinationType().equals(ActualWiring.KAFKA_PORT)
+									&& kafkaPortsToRemove.contains(
+											getDeviceAndKafkaPort(wiring.getDestinationId(), iKafkaMap).getRight()))) {
+
+						ControlMethod method = new ControlMethod();
+						method.setMethodName("purge_connection");
+						method.setSequenceId(sequence++);
+						Map<String, String> params = new HashMap<>();
+						params.put("connection_id", wiring.getNifiId());
+						method.setParams(params);
+						datagram.addMethod(method);
+						iter.remove();
+					}
+				}
+			}*/
+
+			if (sequence == 1)
+				continue;
+
+			String payloadJson = "";
+			try {
+				ObjectMapper objectMapper = new ObjectMapper();
+				payloadJson = objectMapper.writeValueAsString(datagram);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+			MqttMessage message = new MqttMessage(payloadJson.getBytes());
+			message.setQos(2);
+			try {
+				mqttClient.publish(mqttTopic, message);
+			} catch (MqttException e) {
+				e.printStackTrace();
+			}
+
+			datagramCount++;
+		}
+		Map<Integer, ResponseDatagram> responses = ControlResponseReceiver.receiveResponse(datagramCount, sessionId,
+				mqttClient.getServerURI());
+	}
+
+	private void removeConnectionAfterAssetStop(Set<Processor> processorsToMove, Set<Processor> processorsToPause,
+			Set<NifiCommPort> portsToRemove, Set<NifiRPG> rpgsToRemove, Set<NifiKafkaPort> kafkaPortsToRemove)
+			throws Exception {
+		int datagramCount = 0;
+		for (Device device : this.iProcessorMap.keySet()) {
+			String mqttTopic = device.getDeviceUUID();
+			ControlDatagram datagram = new ControlDatagram();
+			datagram.setAckTopic(sessionId);
+			datagram.setSessionId(sessionId);
+			datagram.setResourceId(device.getDeviceUUID());
+			int sequence = 1;
+
 			if (this.iWiringMap.get(device) != null) {
 				Iterator<ActualWiring> iter = this.iWiringMap.get(device).iterator();
 				while (iter.hasNext()) {
@@ -1100,7 +1166,6 @@ public class NifiDeployer implements AppDeployer {
 					}
 				}
 			}
-
 			if (sequence == 1)
 				continue;
 
@@ -1329,7 +1394,9 @@ public class NifiDeployer implements AppDeployer {
 
 	public boolean stopDag() throws Exception {
 		try {
-			mqttClient.connect();
+			MqttConnectOptions connOpts = new MqttConnectOptions();
+			connOpts.setCleanSession(false);
+			mqttClient.connect(connOpts);
 			Map<Device, List<String>> globalConnectionRemoval = stopArtifactsAndPurgeConnections();
 			removeConnections();
 			removeArtifacts();
@@ -1821,9 +1888,9 @@ public class NifiDeployer implements AppDeployer {
 		}
 
 		MqttConnectOptions connOpts = new MqttConnectOptions();
-		connOpts.setCleanSession(true);
+		connOpts.setCleanSession(false);
 		try {
-			mqttClient.connect();
+			mqttClient.connect(connOpts);
 
 			populateMaps(input.getWiring(), placementMap);
 
