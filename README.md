@@ -25,7 +25,7 @@ The Resource Directory is present in the *Registry* module. The target folder wi
 	
 ### MQTT Broker
 
-The platform uses MQTT messages to transmit control signals between the *Master Service* and the *Platform Service*.
+The platform uses MQTT messages to transmit control signals between the *Master Service* and the *Platform Service*. ECHO uses mosquitto MQTT service, which must be installed on the server running the *Master Service*. The service can be installed via apt using `sudo apt-get install mosquitto`
 
 
 ## Usage
