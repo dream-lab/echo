@@ -21,7 +21,7 @@ The Framework consists of mainly two modules
 
 ### Resource Directory
 
-The Resource Directory is present in the *Registry* module. The target folder will contain `HyperCatServer.war` which should be placed in the ROOT directory of a tomcat server. The Dicertory can then be accessed as `<ip_of_tomcat_server>:8080/cat`
+The Resource Directory is present in the *Registry* module. The target folder will contain `HyperCatServer.war` which should be placed in the ROOT directory of a tomcat server. The Resource Directory can then be accessed as `<ip_of_tomcat_server>:8080/cat`
 	
 ### MQTT Broker
 
